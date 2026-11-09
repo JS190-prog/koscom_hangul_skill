@@ -29,9 +29,12 @@ public class Inspect {
             for (CharPositionShapeIdPair pr : p.getCharShape().getPositonShapeIdPairList())
                 cs.append(pr.getPosition()).append(':').append(pr.getShapeId()).append(' ');
         String t = p.getText() == null ? "" : p.getNormalString();
+        // 글자 목록이 있는데 문단 끝 문자(0x0D)로 끝나지 않으면 한글이 "손상되었거나 변조된 문서"로 거부한다 → NOEND로 표시
+        java.util.List<kr.dogfoot.hwplib.object.bodytext.paragraph.text.HWPChar> chars = p.getText() == null ? null : p.getText().getCharList();
+        boolean noEnd = chars != null && (chars.isEmpty() || chars.get(chars.size() - 1).getCode() != 0x0d);
         out.println(ind + label + (p.getHeader().getDivideSort().isDividePage() ? " [PAGEBREAK]" : "")
                 + " ps" + p.getHeader().getParaShapeId() + " st" + p.getHeader().getStyleId()
-                + " cs[" + cs.toString().trim() + "] seg=" + (p.getLineSeg() != null) + " \"" + t + "\"");
+                + " cs[" + cs.toString().trim() + "]" + (noEnd ? " NOEND" : "") + " seg=" + (p.getLineSeg() != null) + " \"" + t + "\"");
         if (p.getControlList() == null) return;
         int k = 0;
         for (Control c : p.getControlList()) {

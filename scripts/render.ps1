@@ -7,5 +7,6 @@
 $skill = Split-Path -Parent $PSScriptRoot
 $cp = "$skill\lib\hwplib-1.1.9.jar;$skill\scripts\koscom-hwp.jar"
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
-java "-Dfile.encoding=UTF-8" -cp $cp Renderer $Json $Out "$skill\templates"
+$java = if ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\java.exe")) { "$env:JAVA_HOME\bin\java.exe" } else { "java" }
+& $java "-Dfile.encoding=UTF-8" -cp $cp Renderer $Json $Out "$skill\templates"
 exit $LASTEXITCODE

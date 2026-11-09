@@ -204,7 +204,8 @@ public class HwpOps {
         List<Control> ctrls = new ArrayList<>(from.getControlList());
         int size = 0;
         for (HWPChar ch : moved) size += ch.getCharSize();
-        if (to.getText() == null) to.createText();
+        // 빈 문단(글자 목록 없음)은 문단 끝 문자를 붙여 만든다. 빠지면 한글이 "손상되었거나 변조된 문서"로 거부한다(기안문 머리, 2026-11-09)
+        if (to.getText() == null) { to.createText(); to.getText().addNewCharControlChar().setCode(0x0d); }
         to.getText().getCharList().addAll(0, moved);
         if (to.getControlList() == null) to.createControlList();
         to.getControlList().addAll(0, ctrls);

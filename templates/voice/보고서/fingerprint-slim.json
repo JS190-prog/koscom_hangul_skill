@@ -1,0 +1,74 @@
+{
+ "meta": {
+  "generator": "scripts/voice/voice_tool.py",
+  "built": "2026-11-09T17:04:12+09:00",
+  "n_docs": 1,
+  "n_points": 4,
+  "unit": "5줄 묶음",
+  "tier": "trial",
+  "status": "trial",
+  "label": "문체 시험용(1건)",
+  "slack_mult": 1.0,
+  "widened_after_loo": false,
+  "allow_out_of_band": 2,
+  "leave_one_out": [],
+  "note": "점 5개 미만이면 min~max, 이상이면 5~95% 분위수 + 여유. 표본이 늘면 build 를 다시 돌린다."
+ },
+ "doc_type": "보고서",
+ "band": {
+  "end_m": {
+   "lo": 0.0,
+   "hi": 0.1,
+   "raw_lo": 0.0,
+   "raw_hi": 0.0
+  },
+  "end_da": {
+   "lo": 0.0,
+   "hi": 0.1,
+   "raw_lo": 0.0,
+   "raw_hi": 0.0
+  },
+  "end_polite": {
+   "lo": 0.0,
+   "hi": 0.1,
+   "raw_lo": 0.0,
+   "raw_hi": 0.0
+  },
+  "end_other": {
+   "lo": 0.9,
+   "hi": 1.1,
+   "raw_lo": 1.0,
+   "raw_hi": 1.0
+  },
+  "line_len": {
+   "lo": 31.4,
+   "hi": 49.3333,
+   "raw_lo": 34.4,
+   "raw_hi": 46.3333
+  },
+  "period_per1k": {
+   "lo": 0.0,
+   "hi": 28.3251,
+   "raw_lo": 0.0,
+   "raw_hi": 24.6305
+  },
+  "comma_per1k": {
+   "lo": 1.8544,
+   "hi": 14.3636,
+   "raw_lo": 4.8544,
+   "raw_hi": 11.3636
+  },
+  "paren_per1k": {
+   "lo": 15.9471,
+   "hi": 46.0235,
+   "raw_lo": 19.4175,
+   "raw_hi": 42.5532
+  },
+  "line_len_cv": {
+   "lo": 0.0119,
+   "hi": 0.574,
+   "raw_lo": 0.1119,
+   "raw_hi": 0.474
+  }
+ }
+}

@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: summary-in-sample-voice
+expected_outcome: |
+  지하주차장_환기팬_교체_검토.hwp 가 만들어진다. 먼저 스킬의 references/examples/voice 보고서 3건으로
+  voice_tool.py build(--human)를 돌려 style-guide.md 를 만들고, 그 문체(명사형 종결, 줄 끝 마침표 없음, 라벨 없음)로
+  report.json 을 쓴 뒤 렌더링 전에 voice_tool.py gate(--facts)로 검사해 합격(종료 코드 0)을 받는다.
+  근거 수치(6대, 2대, 15년, 2,400만원, 2일)만 쓰고 지어내거나 환산한 숫자는 없다. 문체 label(문체 소표본)과 gate 결과를 알린다.

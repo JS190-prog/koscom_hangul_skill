@@ -92,10 +92,14 @@ public class Renderer extends HwpOps {
                 DetailRenderer d = new DetailRenderer(args[2]);
                 d.detail(r);
                 rd = d;
+            } else if (type.equals("draft")) {
+                DraftRenderer d = new DraftRenderer(args[2]);
+                d.draft(r);
+                rd = d;
             } else if (type.equals("summary")) {
                 rd = new Renderer(args[2], "summary");
                 rd.summary(r);
-            } else throw new IllegalArgumentException("알 수 없는 type '" + type + "'(summary 또는 detail)");
+            } else throw new IllegalArgumentException("알 수 없는 type '" + type + "'(summary, detail, draft)");
             rd.applyKeepNext(rd.c.out);
             rd.c.save(args[1]);
             for (String w : rd.warnings) System.out.println("WARN " + w);

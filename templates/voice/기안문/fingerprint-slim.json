@@ -1,0 +1,92 @@
+{
+ "meta": {
+  "generator": "scripts/voice/voice_tool.py",
+  "built": "2026-11-09T17:41:49+09:00",
+  "n_docs": 3,
+  "n_points": 15,
+  "unit": "5줄 묶음",
+  "tier": "small",
+  "status": "verified",
+  "label": "문체 소표본",
+  "slack_mult": 1.0,
+  "widened_after_loo": false,
+  "allow_out_of_band": 2,
+  "leave_one_out": [
+   {
+    "held_out": "D-001",
+    "pass": true,
+    "out_of_band": []
+   },
+   {
+    "held_out": "D-002",
+    "pass": true,
+    "out_of_band": []
+   },
+   {
+    "held_out": "D-003",
+    "pass": true,
+    "out_of_band": [
+     "line_len"
+    ]
+   }
+  ],
+  "note": "점 5개 미만이면 min~max, 이상이면 5~95% 분위수 + 여유. 표본이 늘면 build 를 다시 돌린다."
+ },
+ "doc_type": "기안문",
+ "band": {
+  "end_m": {
+   "lo": 0.0,
+   "hi": 0.3,
+   "raw_lo": 0.0,
+   "raw_hi": 0.2
+  },
+  "end_da": {
+   "lo": 0.0,
+   "hi": 0.3,
+   "raw_lo": 0.0,
+   "raw_hi": 0.2
+  },
+  "end_polite": {
+   "lo": 0.0,
+   "hi": 0.3,
+   "raw_lo": 0.0,
+   "raw_hi": 0.2
+  },
+  "end_other": {
+   "lo": 0.5,
+   "hi": 1.1,
+   "raw_lo": 0.6,
+   "raw_hi": 1.0
+  },
+  "line_len": {
+   "lo": 16.059,
+   "hi": 63.561,
+   "raw_lo": 21.54,
+   "raw_hi": 58.08
+  },
+  "period_per1k": {
+   "lo": 0.0,
+   "hi": 34.1892,
+   "raw_lo": 0.0,
+   "raw_hi": 29.7297
+  },
+  "comma_per1k": {
+   "lo": 0.0,
+   "hi": 24.0798,
+   "raw_lo": 0.0,
+   "raw_hi": 20.9389
+  },
+  "paren_per1k": {
+   "lo": 1.4355,
+   "hi": 26.362,
+   "raw_lo": 4.4355,
+   "raw_hi": 23.362
+  },
+  "line_len_cv": {
+   "lo": 0.0655,
+   "hi": 1.0302,
+   "raw_lo": 0.1768,
+   "raw_hi": 0.9189
+  }
+ }
+}

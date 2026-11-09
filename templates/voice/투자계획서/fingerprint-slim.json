@@ -1,0 +1,74 @@
+{
+ "meta": {
+  "generator": "scripts/voice/voice_tool.py",
+  "built": "2026-11-09T17:04:12+09:00",
+  "n_docs": 1,
+  "n_points": 8,
+  "unit": "5줄 묶음",
+  "tier": "trial",
+  "status": "trial",
+  "label": "문체 시험용(1건)",
+  "slack_mult": 1.0,
+  "widened_after_loo": false,
+  "allow_out_of_band": 2,
+  "leave_one_out": [],
+  "note": "점 5개 미만이면 min~max, 이상이면 5~95% 분위수 + 여유. 표본이 늘면 build 를 다시 돌린다."
+ },
+ "doc_type": "투자계획서",
+ "band": {
+  "end_m": {
+   "lo": 0.0,
+   "hi": 0.43,
+   "raw_lo": 0.0,
+   "raw_hi": 0.33
+  },
+  "end_da": {
+   "lo": 0.0,
+   "hi": 0.1,
+   "raw_lo": 0.0,
+   "raw_hi": 0.0
+  },
+  "end_polite": {
+   "lo": 0.0,
+   "hi": 0.1,
+   "raw_lo": 0.0,
+   "raw_hi": 0.0
+  },
+  "end_other": {
+   "lo": 0.57,
+   "hi": 1.1,
+   "raw_lo": 0.67,
+   "raw_hi": 1.0
+  },
+  "line_len": {
+   "lo": 25.601,
+   "hi": 56.619,
+   "raw_lo": 29.18,
+   "raw_hi": 53.04
+  },
+  "period_per1k": {
+   "lo": 0.0,
+   "hi": 3.0,
+   "raw_lo": 0.0,
+   "raw_hi": 0.0
+  },
+  "comma_per1k": {
+   "lo": 0.0,
+   "hi": 69.308,
+   "raw_lo": 2.7778,
+   "raw_hi": 60.6301
+  },
+  "paren_per1k": {
+   "lo": 0.6446,
+   "hi": 32.6178,
+   "raw_lo": 4.3338,
+   "raw_hi": 28.9286
+  },
+  "line_len_cv": {
+   "lo": 0.0354,
+   "hi": 0.6209,
+   "raw_lo": 0.1354,
+   "raw_hi": 0.5209
+  }
+ }
+}

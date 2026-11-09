@@ -5,7 +5,7 @@
   [int]$Wait = 15
 )
 # 한컴 뷰어로 파일을 열어 (1) 정상으로 열리는지 OK/FAIL을 출력하고 (2) 뷰어 창만 화면 단위로 캡처한다.
-# 데스크톱 전체는 찍지 않는다. Claude Code에서는 샌드박스 밖에서 실행해야 뷰어 창이 보인다.
+# 데스크톱 전체는 찍지 않는다. 에이전트 샌드박스 안에서는 뷰어 창이 보이지 않으므로 샌드박스 밖에서 실행한다.
 Add-Type -AssemblyName System.Drawing
 Add-Type @"
 using System; using System.Text; using System.Runtime.InteropServices;

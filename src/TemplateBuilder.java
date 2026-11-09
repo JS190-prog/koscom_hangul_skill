@@ -27,7 +27,7 @@ import java.util.Map;
  * 원본 코스콤 템플릿(.hwp)에서 안내 주석·스테이플러·예시 박스를 걷어내고
  * 블록별 원형 하나씩만 남긴 base 템플릿과 블록 카탈로그(.properties)를 만든다.
  *
- * 사용: java TemplateBuilder <요약 Template.hwp> <상세 Template.hwp> <출력 폴더>
+ * 사용: java TemplateBuilder <보고서 양식.hwp> <투자계획서 양식.hwp> <기안문 양식.hwp> <출력 폴더>
  *
  * 원형 문단의 텍스트에는 {{이름}} placeholder가 들어가며, 렌더러는 구간별 글자모양을 유지한 채 값을 채운다.
  */
@@ -45,9 +45,66 @@ public class TemplateBuilder extends HwpOps {
     final List<Integer> pageBreaks = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-        String out = args[2];
+        String out = args[3];
         new TemplateBuilder().summary(args[0], out);
         new TemplateBuilder().detail(args[1], out);
+        new TemplateBuilder().draft(args[2], out);
+    }
+
+    // ================================================================= 기안문
+
+    /**
+     * 머리(#0 수신자·제목 칸)와 꼬리(#46 첨부 ~ #75 결재·협조·시행 정보)는 전자결재 시스템이 만드는 영역이라 양식 그대로 두고,
+     * 본문 안내 문단(#1~#45)에서 단계별 원형만 뽑는다. 글자는 검정(양식의 파랑·초록은 안내용 색).
+     * 내어쓰기는 기안문 견본(맑은 고딕 12pt)에서 잰 값: 머리 기호 다음 글자에 둘째 줄을 맞춘다.
+     */
+    void draft(String path, String outDir) throws Exception {
+        load(path);
+        add("SECTION", src[0]);
+        Paragraph head = src[0].clone();   // 머리 표는 저장할 때 SECTION에서 이 빈 문단으로 옮겨진다
+        for (Control c : new ArrayList<>(head.getControlList())) removeControl(head, c);
+        add("HEAD", head);
+        int body = 9, bold = 10, small = 1, hang = 20, plain = 16;
+        block("TOP", src[1], "{{TEXT}}", body, hang);                       // 1. 관련 근거 / 2. 위 근거에 의거, …
+        block("BASIS", src[2], "  {{TEXT}}", body, addParaShape(hwp, plain, 0, -6600));
+        block("BELOW", src[8], "-  아    래  -", body, 21);
+        block("H1", src[10], "{{TEXT}}", bold, hang);
+        block("O", src[12], "  ㅇ {{TEXT}}", body, addParaShape(hwp, plain, 0, -6000));
+        block("DASH", src[18], "    - {{TEXT}}", body, addParaShape(hwp, plain, 0, -7000));
+        block("DOT", src[22], "      · {{TEXT}}", body, addParaShape(hwp, plain, 0, -9100));
+        block("NOTE", src[13], "    * {{TEXT}}", small, addParaShape(hwp, plain, 0, -6500));
+        block("REF", src[29], "  ※ {{TEXT}}", small, addParaShape(hwp, plain, 0, -5500));
+        block("UNIT", src[40], "{{TEXT}}", small, 12);                      // (단위 : 원, 부가세 별도), 오른쪽 정렬
+        setEmpty(src[21], body);
+        add("GAP", src[21]);
+        keepRows(firstTable(src[32]), 1, 2, 4);   // 단위 줄(0)·합계 줄(5, 병합 칸)은 원형에서 뺀다
+        keepRows(firstTable(src[35]), 0, 1, 2);
+        tables(src[32], src[35], 15, small);
+        addRange("FOOTER", 46, 75);
+        write(outDir + "/draft_base.hwp", outDir + "/draft_catalog.properties");
+    }
+
+    void block(String name, Paragraph p, String text, int cs, int ps) throws Exception {
+        runs(p, run(text, cs));
+        p.getHeader().setParaShapeId(ps);
+        add(name, p);
+    }
+
+    /** 표에서 keep 행만 남기고 행 번호를 0부터 다시 매긴다(병합 칸이 없는 행만). */
+    static void keepRows(ControlTable t, int... keep) {
+        List<Row> rows = new ArrayList<>();
+        for (int k : keep) rows.add(t.getRowList().get(k));
+        t.getRowList().clear();
+        t.getRowList().addAll(rows);
+        t.getTable().getCellCountOfRowList().clear();
+        long h = 0;
+        for (int i = 0; i < rows.size(); i++) {
+            for (Cell c : rows.get(i).getCellList()) c.getListHeader().setRowIndex(i);
+            t.getTable().addCellCountOfRow(rows.get(i).getCellList().size());
+            h += rows.get(i).getCellList().get(0).getListHeader().getHeight();
+        }
+        t.getTable().setRowCount(rows.size());
+        t.getHeader().setHeight(h);
     }
 
     // ================================================================= 요약보고
