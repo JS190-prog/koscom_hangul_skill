@@ -216,7 +216,9 @@ def flatten_report(d):
             out.append("2. " + (d.get("request") or f"위 근거에 의거, 아래와 같이 {purpose} 추진하고자 하오니 결재하여 주시기 바랍니다."))
         else:       # 관련 근거가 없으면 번호 없는 한 문장
             out.append(d.get("request") or f"{purpose} 아래와 같이 추진하고자 합니다.")
-        out.append("-  아    래  -")
+        items(d.get("notes"))                       # 요청 문장 아래 단서
+        if d.get("sections"):                       # 번호 항목이 없으면 「아래」도 없다
+            out.append("-  아    래  -")
         for i, s in enumerate(d.get("sections") or [], 1):
             out.append(f"{i}. {s.get('heading', '')}" + (f" : {s['text']}" if s.get("text") else ""))
             items(s.get("items"))
