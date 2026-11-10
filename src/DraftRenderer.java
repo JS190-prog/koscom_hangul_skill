@@ -108,6 +108,8 @@ public class DraftRenderer extends Renderer {
      * (본문 길이를 바꾼 기안문 36건을 한글 PDF로 확인 — 마지막 쪽 본문 끝이 이 한계를 넘은 4건만 어긋났다).
      * 쪽을 추정해 넘치면 첨부 목록(없으면 마지막 장)을 새 쪽에서 시작해 결재 칸과 같은 쪽에 둔다.
      * 첨부 목록이 두 쪽에 걸쳐도(첨부05: 「첨부 1.」 첫 줄만 앞 쪽 맨 끝, 「1부」부터 다음 쪽) 목록째 새 쪽에서 시작한다.
+     * 목록이 결재 칸 위에 다 들어가지 않을 만큼 길면(우선협상 결과보고: 첨부 11건) 들어가는 뒷부분만 새 쪽에서 시작하고 앞 항목은 앞 쪽에 둔다 —
+     * 목록째 넘기면 결재 칸 자리를 넘쳐 빈 쪽이 하나 더 생겼다.
      */
     void keepTailWithBody(List<Paragraph> out, int attStart, List<Paragraph> footer) {
         ControlTable tail = null;
@@ -127,9 +129,19 @@ public class DraftRenderer extends Renderer {
         if (DEBUG) System.out.printf("DEBUG tail: last page %d used %.1f vs limit %.1f (tail %.1f, footer lines %.1f, head %.1f) att split %b%n",
                 last, used, limit, tail.getHeader().getHeight() / 100.0, after, firstPageTop, split);
         if (used <= limit && !split) return;
-        int at = attStart < out.size() ? attStart : -1;
-        for (int i = out.size() - 1; at < 0 && i > 0; i--)       // 첨부가 없으면 마지막 장 제목(앞 빈 줄째)
-            if (keepNext.contains(out.get(i))) at = out.get(i - 1).getText() == null ? i - 1 : i;
+        int at = -1;
+        if (attStart < out.size()) {
+            double h = 0;                                          // 뒤에서부터 결재 칸 위에 들어가는 첨부 항목까지
+            for (int i = out.size() - 1; i >= attStart; i--) {
+                Paragraph p = out.get(i);
+                h += paraSpace(p, true) + lineHeight(p) * lines(p).size() + paraSpace(p, false);
+                if (h > limit) break;
+                at = i;
+            }
+        } else
+            for (int i = out.size() - 1; at < 0 && i > 0; i--)   // 첨부가 없으면 마지막 장 제목(앞 빈 줄째)
+                if (keepNext.contains(out.get(i))) at = out.get(i - 1).getText() == null ? i - 1 : i;
+        if (DEBUG) System.out.printf("DEBUG tail: new page at %d (첨부 %d번째부터)%n", at, at - attStart + 1);
         if (at > 0) out.get(at).getHeader().getDivideSort().setDividePage(true);
     }
 

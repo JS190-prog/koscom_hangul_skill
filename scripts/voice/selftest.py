@@ -245,6 +245,15 @@ def main():
             assert all('"첨부 1. 가 문서 1부"' in ln for ln in breaks), f"쪽 나눔 위치가 첨부 첫 줄이 아님: {breaks}"
             hits += bool(breaks)
         assert 0 < hits < 10, f"본문 길이를 바꿔도 첨부 쪽 나눔이 {hits}/10번"
+        # 첨부가 결재 칸 위에 다 들어가지 않을 만큼 길면 뒷부분만 새 쪽에서(앞 항목은 앞 쪽) — 목록째 넘기면 빈 쪽이 생겼다(첨부 11건 실측)
+        dk = td / "draft_longatt.json"
+        dk.write_text(json.dumps({"type": "draft", "purpose": "시험", "sections": [{"heading": "추진 내용", "items": [
+            {"type": "o", "text": f"항목 {i} 문장으로 두 줄에 걸치도록 충분히 길게 쓰는 시험 문장이며 줄 수를 늘리기 위한 내용을 덧붙임"} for i in range(10)]}],
+            "attachments": [f"[운영2026-{i:04d}] 시험 사업 추진 [품목2]-시험 솔루션 도입 제한경쟁입찰 실시 관련 문서 제목 {i} (2026. 9. 10.) 1부"
+                            for i in range(12)]}, ensure_ascii=False), encoding="utf-8")
+        render(dk, td / "draft_longatt.hwp")
+        breaks = [ln for ln in dump(td / "draft_longatt.hwp").decode("utf-8", "replace").splitlines() if "[PAGEBREAK]" in ln]
+        assert len(breaks) == 1 and '"     5. [운영2026-0004]' in breaks[0], f"긴 첨부 목록의 쪽 나눔: {breaks}"
         # 번호 항목이 없는 통보문: 요청 문장 아래 ※ 단서, 「- 아 래 -」 없음(BMT 결과 통보처럼)
         dt = td / "draft_notice.json"
         dt.write_text(json.dumps({"type": "draft", "basis": ["운영2026-0864(2026. 8. 18. : 제한경쟁입찰 실시)"],
