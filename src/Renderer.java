@@ -348,6 +348,8 @@ public class Renderer extends HwpOps {
     /** 쪽마다 글 줄 수와 쓴 높이(pt), 그리고 쪽 나누기로 시작하는 쪽. paginate가 채운다. */
     final Map<Integer, Integer> pageLines = new HashMap<>();
     final Map<Integer, Double> pageUsed = new HashMap<>();
+    /** 첫 쪽에서 본문 문단 앞을 차지하는 높이(pt) — 기안문 머리(로고 · 수신자 · 제목 칸)처럼 구역 문단에 있는 개체. */
+    double firstPageTop = 0;
     final java.util.Set<Integer> pageBreaks = new java.util.TreeSet<>();
     final Map<Integer, Boolean> pageHasObject = new HashMap<>();
     /** 쪽 넘침 경고로 볼 마지막 쪽 줄 수 상한. */
@@ -373,7 +375,7 @@ public class Renderer extends HwpOps {
         int page = 0;
         for (int idx = 0; idx < body.size(); idx++) {
             Paragraph p = body.get(idx);
-            if (p.getHeader().getDivideSort().isDividePage() || page == 0) { page++; y = 0; pageBreaks.add(page); }
+            if (p.getHeader().getDivideSort().isDividePage() || page == 0) { page++; y = page == 1 ? firstPageTop : 0; pageBreaks.add(page); }
             double lh = lineHeight(p), top = paraSpace(p, true), bottom = paraSpace(p, false);
             if (keepNext.contains(p) && y > 0) {
                 // 제목 + 뒤따르는 빈 간격 + 다음 내용 첫 줄이 남은 공간에 안 들어가면 제목째 다음 쪽으로

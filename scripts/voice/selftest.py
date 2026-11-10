@@ -231,6 +231,30 @@ def main():
         assert vt.clean_lines(got) == vt.clean_lines(vt.read_text(dn)), "관련 근거 없는 기안문 다시 읽기 불일치"
         assert "관련 근거" not in got and "본사 회의실 화상회의 장비 교체를 아래와 같이 추진하고자 합니다." in got \
             and "1. 본사" not in got and "결재하여 주시기" not in got, "관련 근거 없는 기안문의 요청 문장"
+        # 결재 칸(쪽 아래 고정)과 마지막 쪽 본문이 겹칠 만큼 길면 첨부 목록을 새 쪽에서 시작한다 — 한글은 결재 칸을 처음 놓인 쪽에
+        # 남기고 본문만 다음 쪽으로 밀기 때문(첨부02 실측). 길이를 바꿔 가며: 쪽 나눔은 「첨부 1.」에만, 들어가는 문서(예시)는 나눔 없음
+        assert "[PAGEBREAK]" not in d0, "결재 칸이 들어가는 기안문에 쪽 나눔이 생김"
+        hits = 0
+        for k in range(14, 34, 2):
+            dk = td / f"draft_len{k}.json"
+            dk.write_text(json.dumps({"type": "draft", "purpose": "시험", "sections": [{"heading": "추진 내용", "items": [
+                {"type": "o", "text": f"항목 {i} 문장으로 두 줄에 걸치도록 충분히 길게 쓰는 시험 문장이며 줄 수를 늘리기 위한 내용을 덧붙임"} for i in range(k)]}],
+                "attachments": ["가 문서 1부", "나 문서 1부", "다 문서 1부"]}, ensure_ascii=False), encoding="utf-8")
+            render(dk, td / f"draft_len{k}.hwp")
+            breaks = [ln for ln in dump(td / f"draft_len{k}.hwp").decode("utf-8", "replace").splitlines() if "[PAGEBREAK]" in ln]
+            assert all('"첨부 1. 가 문서 1부"' in ln for ln in breaks), f"쪽 나눔 위치가 첨부 첫 줄이 아님: {breaks}"
+            hits += bool(breaks)
+        assert 0 < hits < 10, f"본문 길이를 바꿔도 첨부 쪽 나눔이 {hits}/10번"
+        # 번호 항목이 없는 통보문: 요청 문장 아래 ※ 단서, 「- 아 래 -」 없음(BMT 결과 통보처럼)
+        dt = td / "draft_notice.json"
+        dt.write_text(json.dumps({"type": "draft", "basis": ["운영2026-0864(2026. 8. 18. : 제한경쟁입찰 실시)"],
+                                  "request": "위 관련근거에 의거하여 BMT 결과를 통보하오니 업무에 협조하여 주시기 바랍니다.",
+                                  "notes": [{"type": "ref", "text": "BMT 결과는 별도 제출"}], "sections": [],
+                                  "attachments": ["[운영2026-0864] 제한경쟁입찰 실시 (2026. 8. 18.) 1부"]}, ensure_ascii=False), encoding="utf-8")
+        render(dt, td / "draft_notice.hwp")
+        got = vt.read_text(td / "draft_notice.hwp")
+        assert vt.clean_lines(got) == vt.clean_lines(vt.read_text(dt)), "통보문 다시 읽기 불일치"
+        assert "아    래" not in got and "※ BMT 결과는 별도 제출" in got and "2. 위 관련근거에 의거하여" in got, "통보문 모양"
         # 예산 표 합계 행: 기안문 양식처럼 앞 두 칸 병합 · 회색 바탕(bf22) · 「합계」는 머리행 글자모양(굵게)
         tot = re.search(r'cell\(\d+,0\) bf(\d+) span1x2\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"합계"', d0)
         head = re.search(r'cell\(0,0\) bf\d+ span1x1\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"배정부서"', d0)

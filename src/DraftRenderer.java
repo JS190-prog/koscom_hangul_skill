@@ -62,10 +62,13 @@ public class DraftRenderer extends Renderer {
                 req = "위 근거에 의거, 아래와 같이 " + obj(str(r, "purpose", "○○○○")) + " 추진하고자 하오니 결재하여 주시기 바랍니다.";
             out.add(body("TOP", n + ". " + req, 3));
         }
-        out.add(c.proto("GAP"));
-        out.add(c.proto("BELOW"));
         boolean paren = str(r, "label_style", "colon").equals("paren");
+        draftItems(out, list(r, "notes"), paren, false);   // 요청 문장 바로 아래 단서(예: ※ BMT 결과는 별도 제출)
         List<Object> secs = list(r, "sections");
+        if (!secs.isEmpty()) {                              // 번호 항목이 없는 통보 · 협조 문서는 「- 아 래 -」 없이 끝난다
+            out.add(c.proto("GAP"));
+            out.add(c.proto("BELOW"));
+        }
         for (int i = 0; i < secs.size(); i++) {
             @SuppressWarnings("unchecked") Map<String, Object> s = (Map<String, Object>) secs.get(i);
             out.add(c.proto("GAP"));
@@ -84,12 +87,59 @@ public class DraftRenderer extends Renderer {
             String head = atts.size() == 1 ? "첨부 " : i == 0 ? "첨부 1. " : "     " + (i + 1) + ". ";
             String end = i == atts.size() - 1 ? ". 끝." : "";
             Paragraph p = setText(proto.clone(), head + String.valueOf(atts.get(i)).trim() + end, bodyCs());
-            // 두 줄로 넘어가면 머리(「첨부 1. 」 · 「     2. 」) 다음 글자에 맞춘다. 내어쓰기 값은 작성사례 문단모양(ps20 · ps19) 그대로
-            p.getHeader().setParaShapeId(attPs(p.getHeader().getParaShapeId(), atts.size() == 1 ? -5800 : i == 0 ? -9048 : -7632));
+            // 두 줄로 넘어가면 머리(「첨부 1. 」 · 「     2. 」 — 두 머리는 폭이 같다) 다음 글자에 맞춘다. 작성사례 첫 줄 문단모양(ps20)의 내어쓰기 -9048. 둘째 줄부터의 ps19(-7632)는 줄이 넘어가지 않을 때만 맞아서 쓰지 않는다
+            p.getHeader().setParaShapeId(attPs(p.getHeader().getParaShapeId(), atts.size() == 1 ? -5800 : -9048));
             out.add(p);
         }
         anchorTail(footer);
+        keepTailWithBody(out, out.size() - atts.size(), footer);
         out.addAll(footer);
+    }
+
+    /** 쪽 추정 오차 여유(pt), 줄 1개 — 길이를 바꾼 시험 36건에서 추정이 한글 위치와 ±6pt 안. 늘리면 작성사례(2쪽)도 첨부가 3쪽으로 밀린다. */
+    static final double TAIL_SAFETY = 18;
+
+    /**
+     * 결재 칸(쪽 아래 고정)이 마지막 쪽 본문과 겹치지 않게 한다. 한글은 쪽 기준 개체를 그 문단이 처음 놓인 쪽에 두고, 본문은
+     * 개체 자리를 피해 다음 쪽으로 민다 — 결재 칸만 앞 쪽에 남거나(첨부02: 결재 칸 3쪽, 10장 · 11장 · 첨부 4쪽) 빈 쪽이 하나 더 생긴다.
+     * 한글이 비켜 주는 높이는 그려진 표(약 210pt)가 아니라 저장된 표 높이(344pt)이고, 표 앞 빈 줄 · 표 문단 · 뒤 빈 줄도 그 위에 들어가야 한다
+     * (본문 길이를 바꾼 기안문 36건을 한글 PDF로 확인 — 마지막 쪽 본문 끝이 이 한계를 넘은 4건만 어긋났다).
+     * 쪽을 추정해 넘치면 첨부 목록(없으면 마지막 장)을 새 쪽에서 시작해 결재 칸과 같은 쪽에 둔다.
+     * 첨부 목록이 두 쪽에 걸쳐도(첨부05: 「첨부 1.」 첫 줄만 앞 쪽 맨 끝, 「1부」부터 다음 쪽) 목록째 새 쪽에서 시작한다.
+     */
+    void keepTailWithBody(List<Paragraph> out, int attStart, List<Paragraph> footer) {
+        ControlTable tail = null;
+        double after = 0;
+        for (Paragraph p : footer) {
+            ControlTable t = firstTable(p);
+            if (t != null && t.getRowList().size() >= 10) tail = t;
+            after += lineHeight(p) + paraSpace(p, true) + paraSpace(p, false);
+        }
+        if (tail == null) return;
+        double limit = bodyHeight() - tail.getHeader().getHeight() / 100.0 - after - TAIL_SAFETY;
+        firstPageTop = headHeight();
+        Map<Paragraph, Integer> pg = paginate(out);
+        int last = pageUsed.keySet().stream().max(Integer::compare).orElse(1);
+        double used = pageUsed.getOrDefault(last, 0.0);
+        boolean split = attStart < out.size() && pg.get(out.get(attStart)) < last;
+        if (DEBUG) System.out.printf("DEBUG tail: last page %d used %.1f vs limit %.1f (tail %.1f, footer lines %.1f, head %.1f) att split %b%n",
+                last, used, limit, tail.getHeader().getHeight() / 100.0, after, firstPageTop, split);
+        if (used <= limit && !split) return;
+        int at = attStart < out.size() ? attStart : -1;
+        for (int i = out.size() - 1; at < 0 && i > 0; i--)       // 첨부가 없으면 마지막 장 제목(앞 빈 줄째)
+            if (keepNext.contains(out.get(i))) at = out.get(i - 1).getText() == null ? i - 1 : i;
+        if (at > 0) out.get(at).getHeader().getDivideSort().setDividePage(true);
+    }
+
+    /** 첫 쪽 머리(구역 문단의 로고 · 수신자 · 제목 표) 높이(pt). */
+    double headHeight() {
+        double h = 0;
+        for (Control ct : c.base[c.index("SECTION")].getControlList())
+            if (ct instanceof ControlTable) {
+                ControlTable t = (ControlTable) ct;
+                h += tableHeight(t) + (t.getHeader().getOutterMarginTop() + t.getHeader().getOutterMarginBottom()) / 100.0;
+            }
+        return h;
     }
 
     /** 기안문 양식의 합계 행 테두리 · 바탕(가는 실선, 회색 f2f2f2). draft_base.hwp 문서 정보에 양식 그대로 들어 있다. */
@@ -101,7 +151,7 @@ public class DraftRenderer extends Renderer {
         if (rows.size() < 3) return;
         Row last = rows.get(rows.size() - 1);
         Paragraph label = last.getCellList().get(0).getParagraphList().getParagraph(0);
-        if (!plainText(label).replaceAll("\\s", "").matches("합계|총계")) return;
+        if (!plainText(label).replaceAll("\\s", "").matches("(합계|총계).*")) return;   // 「합 계 (①+②)」처럼 꼬리가 붙어도
         int headCs = (int) rows.get(0).getCellList().get(0).getParagraphList().getParagraph(0)
                 .getCharShape().getPositonShapeIdPairList().get(0).getShapeId();
         for (Cell cell : last.getCellList()) cell.getListHeader().setBorderFillId(TOTAL_BF);
