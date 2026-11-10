@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한글 문서 스튜디오</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--or:#ee6d1d;--nv:#00338d;--ink:#2b2b2e;--grey:#74747a;--hair:#e4e4e8;--bg:#f6f6f8;--soft:#fdeee4;--bad:#fdecea;--red:#c62828}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 'Malgun Gothic','KoPub Dotum',sans-serif;color:var(--ink);background:var(--bg);word-break:keep-all}
+  .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:12px 24px;background:#fff;border-bottom:1px solid var(--hair)}
+  .top b{font-size:17px;white-space:nowrap}.top b::before{content:'›';color:var(--or);font-size:24px;margin-right:8px;vertical-align:-2px}
+  .top span{color:var(--grey);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .chip{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--bg);color:var(--grey);white-space:nowrap}
+  main{max-width:1320px;margin:0 auto;padding:20px 24px 110px}
+  section.box{background:#fff;border:1px solid var(--hair);border-radius:10px;padding:20px 22px;margin-bottom:16px}
+  h2{margin:0 0 14px;font-size:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  h2 i{font-style:normal;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--or);color:#fff;font-size:14px}
+  h2 small{font-weight:400;color:var(--grey);font-size:13px}
+  .kinds{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .kind{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:6px;padding:18px 18px 16px;border:2px solid var(--hair);border-radius:10px;background:#fff}
+  .kind:hover{border-color:#bbb}.kind:focus-visible{outline:3px solid var(--nv)}
+  .kind b{font-size:18px}.kind b::before{content:attr(data-icon);display:inline-grid;place-items:center;width:30px;height:30px;margin-right:9px;border-radius:7px;background:var(--bg);color:var(--or);font-size:16px}
+  .kind span{color:var(--grey);font-size:13px}
+  .kind[aria-pressed=true]{border-color:var(--or);background:#fffaf6}.kind[aria-pressed=true] b::before{background:var(--or);color:#fff}
+  .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px;margin-bottom:12px}
+  .form label,.field{display:grid;gap:4px;font-size:13px;color:var(--grey)}
+  .wide{grid-column:1/-1}
+  input[type=text],textarea,select{font:inherit;font-size:14px;color:var(--ink);padding:8px 10px;border:1px solid var(--hair);border-radius:6px;background:#fff;width:100%}
+  textarea{resize:vertical;min-height:38px;line-height:1.5}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--or);border-color:transparent}
+  .radios{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--ink)}
+  .radios label{display:flex;gap:6px;align-items:center}
+  button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--hair);background:#fff;padding:8px 14px;color:var(--ink)}
+  button:hover{border-color:var(--ink)}
+  button.primary{background:var(--or);border-color:var(--or);color:#fff;font-weight:700;padding:10px 20px}
+  button.navy{background:var(--nv);border-color:var(--nv);color:#fff;font-weight:700;padding:10px 20px}
+  button:disabled{opacity:.5;cursor:wait}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .tabs button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .forms{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+  .fcard{border:1px solid var(--hair);border-radius:8px;padding:12px 14px;display:grid;gap:6px;align-content:start}
+  .fcard b{font-size:15px}.fcard p{margin:0;color:var(--grey);font-size:13px}
+  .tag{font-size:11px;padding:1px 7px;border-radius:99px;background:var(--bg);color:var(--grey);margin-left:6px;font-weight:400}
+  .tag.auto{background:var(--soft);color:var(--or)}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px dashed var(--hair)}
+  .presets b{font-size:14px;color:var(--ink)}
+  .dates{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px}
+  .dates input{font:inherit;font-size:13px;padding:3px 6px;border:1px solid var(--hair);border-radius:6px;color:var(--ink)}
+  .note{font-size:13px;color:var(--grey);margin:6px 0 0}
+  .banner{padding:12px 16px;border-radius:8px;background:var(--soft);font-size:14px;margin-bottom:16px}
+  .banner.bad{background:var(--bad)}
+  .work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:start}
+  @media (max-width:980px){.work{grid-template-columns:1fr}}
+  .pane{min-width:0}
+  .pane h3{margin:0 0 10px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .editor{max-height:72vh;overflow:auto;padding-right:6px}
+  fieldset{border:0;border-left:3px solid var(--hair);margin:8px 0;padding:2px 0 2px 12px;display:grid;gap:8px}
+  legend{font-size:13px;font-weight:700;color:var(--nv);padding:0}
+  .grid-wrap{overflow-x:auto}
+  table.grid{border-collapse:collapse;width:100%}
+  table.grid td{border:1px solid var(--hair);padding:0}
+  table.grid textarea{border:0;border-radius:0;min-height:34px;padding:6px 8px;font-size:13px}
+  table.grid td.ro{padding:6px 8px;font-size:12px;color:var(--grey);background:var(--bg);text-align:center}
+  .pages{max-height:78vh;overflow:auto;display:grid;gap:14px;background:#d9d9de;padding:14px;border-radius:8px}
+  .pages img{width:100%;display:block;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+  .pages p{margin:0;color:var(--ink);font-size:14px;background:#fff;padding:14px;border-radius:6px}
+  .msgs{font-size:13px;margin:0 0 10px;padding:0;list-style:none;display:grid;gap:4px}
+  .msgs li{padding:6px 10px;border-radius:6px;background:var(--bg)}
+  .msgs li.e{background:var(--bad);color:var(--red)}
+  .res{margin-top:12px;padding:12px 14px;border-radius:8px;background:var(--bg);font-size:14px}
+  .res.ok{background:var(--soft)}.res.bad{background:var(--bad)}
+  .res ul{margin:6px 0 0 18px;padding:0}
+  .exports{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+  .exports a{color:var(--nv)}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px 16px;background:#fff;border-top:1px solid var(--hair)}
+  #msg{font-size:14px;color:var(--grey)}#msg.err{color:var(--red)}
+  .dirty{color:var(--or);font-size:13px;font-weight:700}
+  .samples{margin:0 0 18px;padding:14px;border-radius:10px;background:var(--bg)}
+  .samples h3{margin:0 0 10px;font-size:14px;color:var(--ink)}.samples h3 small{font-weight:400;color:var(--grey)}
+  .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+  .scard{all:unset;box-sizing:border-box;cursor:zoom-in;display:grid;gap:6px;align-content:start;background:#fff;border:1px solid var(--hair);border-radius:8px;padding:8px}
+  .scard:hover{border-color:var(--or)}.scard:focus-visible{outline:3px solid var(--nv)}
+  .scard img{width:100%;aspect-ratio:210/297;object-fit:cover;object-position:top;border:1px solid var(--hair);background:#fff}
+  .scard b{font-size:13px}.scard span{font-size:12px;color:var(--grey);line-height:1.45}
+  .fcard img{width:100%;aspect-ratio:210/150;object-fit:cover;object-position:top;border:1px solid var(--hair);cursor:zoom-in}
+  .viewer{position:fixed;inset:0;z-index:20;background:rgba(20,20,24,.9);display:flex;flex-direction:column}
+  .vbar{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#fff;background:#18181b;padding-top:max(12px,env(safe-area-inset-top))}
+  .vbar b{flex:1;font-size:16px}.vbar span{font-size:13px;opacity:.75}
+  .vpages{flex:1;overflow:auto;display:grid;justify-items:center;gap:16px;padding:6px 16px 28px}
+  .vpages img{width:min(820px,100%);background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+  .exlist{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+  .exlist li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 12px;border:1px solid var(--hair);border-radius:8px;background:#fff}
+  .exlist li b{flex:1 1 260px;font-size:14px;word-break:break-all}
+  .exlist a{font-size:13px;color:var(--grey)}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><b>코스콤 한글 문서 스튜디오</b><span id="proj"></span><em class="chip" id="hw"></em><button id="quit" title="서버를 끕니다. 작업본과 최종본 파일은 그대로 남습니다">스튜디오 종료</button></header>
+<main>
+  <section class="box">
+    <h2><i>1</i> 무엇을 만들까요?</h2>
+    <div class="kinds" id="kinds">
+      <button class="kind" data-kind="report" aria-pressed="false"><b data-icon="□">보고서</b><span>요약보고 1~2쪽 · 제목 박스와 결재라인 · □ ㅇ - · 개조식</span></button>
+      <button class="kind" data-kind="gian" aria-pressed="false"><b data-icon="✎">기안문</b><span>전자결재 기안·품의 · 관련근거 → 아래 → 번호 항목 · 첨부로 결재란까지</span></button>
+      <button class="kind" data-kind="invest" aria-pressed="false"><b data-icon="Ⅰ">투자계획서</b><span>상세보고 · 표지와 목차 · 장(I, II)과 절 박스</span></button>
+      <button class="kind" data-kind="form" aria-pressed="false"><b data-icon="⊞">양식 만들기</b><span>내 양식 올리기 · 말로 새 양식 만들기 · 등록한 양식 채우기</span></button>
+    </div>
+  </section>
+
+  <section class="box" id="opt" hidden>
+    <h2><i>2</i> <span id="optTitle">서식 고르기</span> <small id="optSub"></small></h2>
+    <div class="banner" id="aiNote" hidden></div>
+    <div class="samples" id="samples" hidden></div>
+
+    <div data-for="report" hidden>
+      <div class="form">
+        <label class="wide">제목 <input type="text" data-k="title" maxlength="80" placeholder="예: 11월 정보보호 교육 결과보고 (비우면 내용으로 정함)"></label>
+        <label>부서 <input type="text" data-o="dept" placeholder="예: 정보보호부"></label>
+        <label>날짜 <input type="text" data-o="date" data-today="report"></label>
+        <label>담당 <input type="text" data-o="담당" placeholder="이름(내선)"></label>
+        <label>팀장 <input type="text" data-o="팀장" placeholder="이름(내선)"></label>
+        <label>부서장 <input type="text" data-o="부서장" placeholder="이름(내선)"></label>
+        <label>대제목 모양 <select data-o="heading_style"><option value="box">□ 상자(기본)</option><option value="number">1. 2. 번호</option></select></label>
+      </div>
+    </div>
+
+    <div data-for="invest" hidden>
+      <div class="form">
+        <label class="wide">사업명(표지 제목) <input type="text" data-k="title" maxlength="80" placeholder="예: 전사 사무환경 개선 용역(설계 및 시공)"></label>
+        <label>본부 <input type="text" data-o="hq" placeholder="예: 경영지원본부"></label>
+        <label>부서 <input type="text" data-o="dept" placeholder="예: 경영지원부"></label>
+        <label>날짜 <input type="text" data-o="date" data-today="invest"></label>
+        <label>담당 <input type="text" data-o="담당" placeholder="이름(내선)"></label>
+        <label>팀장 <input type="text" data-o="팀장" placeholder="이름(내선)"></label>
+        <label>부장 <input type="text" data-o="부장" placeholder="이름(내선)"></label>
+        <label>표지 <select data-o="cover"><option value="full">정식 표지 + 목차 쪽</option><option value="compact">간략 표지(한 쪽에 목차까지)</option></select></label>
+      </div>
+    </div>
+
+    <div data-for="gian" hidden>
+      <div class="radios" style="margin-bottom:12px">
+        <label><input type="radio" name="gmode" value="full" checked> 결재란까지 갖춘 기안문(첨부 파일로 관련근거·예산 대조)</label>
+        <label><input type="radio" name="gmode" value="body"> 본문만(전자결재 본문 칸에 붙일 .hwp)</label>
+      </div>
+      <div class="form">
+        <label class="wide">기안 제목 <input type="text" data-k="title" maxlength="80" placeholder="예: OOO 도입 및 구매 계약 의뢰 (비우면 첨부로 정함)"></label>
+        <label class="wide" data-gfull>첨부 폴더 경로 <input type="text" data-o="attach_dir" placeholder="예: C:\자료\기안\첨부  (첨부01_, 첨부02_ … 순서)"></label>
+        <label data-gfull>수신 <input type="text" data-o="recipient" placeholder="내부결재 / 경영지원부장"></label>
+        <label data-gfull>전결권자 <input type="text" data-o="decider" placeholder="예: 본부장 전결"></label>
+      </div>
+    </div>
+
+    <div data-for="form" hidden>
+      <div class="tabs" role="tablist">
+        <button data-ft="list" aria-selected="true">등록된 양식</button>
+        <button data-ft="upload" aria-selected="false">내 양식 올리기</button>
+        <button data-ft="nl" aria-selected="false">말로 새 양식 만들기</button>
+      </div>
+      <div data-ftp="list"><div class="forms" id="formList"></div><div class="presets" id="presets"></div></div>
+      <div data-ftp="upload" hidden>
+        <div class="form">
+          <label class="wide">한글 양식 파일(.hwpx·.hwp) <input type="file" id="upFile" accept=".hwpx,.hwp"></label>
+          <label>양식 이름 <input type="text" id="upName" maxlength="40" placeholder="예: 휴가 신청서"></label>
+          <label>설명 <input type="text" id="upDesc" maxlength="200" placeholder="어떤 때 쓰는 양식인지"></label>
+        </div>
+        <button class="navy" id="upBtn">양식 등록</button>
+        <p class="note">채울 자리에 <b>{{성명}}</b>, <b>{{기간}}</b>처럼 적어 저장한 파일을 올리면 항목마다 입력 칸이 생깁니다. .hwp는 한글로 .hwpx로 바꿔 등록합니다.</p>
+      </div>
+      <div data-ftp="nl" hidden>
+        <div class="form">
+          <label>양식 이름 <input type="text" id="nlName" maxlength="40" placeholder="예: 국내 출장 신청서"></label>
+          <label class="wide">어떤 양식인지 말로 적어 주세요
+            <textarea id="nlDesc" rows="6" placeholder="예: 결재라인(담당·팀장·부서장)과 신청일·부서가 있고, 출장자·출장지·기간·목적을 적는 표, 교통비·숙박비와 합계를 적는 경비 표, 마지막에 특이 사항 한 줄."></textarea></label>
+        </div>
+        <p class="note">에이전트가 코스콤 보고서 서식(제목 박스·결재라인·표)으로 양식을 만들어 등록합니다. 다 되면 이 화면에서 바로 채울 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="form" id="memoBox">
+      <label class="wide">내용 메모·자료 <small>(에이전트가 이 내용으로 씁니다. 채팅에 준 자료가 있으면 비워도 됩니다)</small>
+        <textarea data-k="memo" rows="5" placeholder="회의 메모, 초안, 숫자, 참고할 파일 경로 등을 적어 주세요"></textarea></label>
+    </div>
+    <button class="primary" id="create">이 서식으로 만들기</button>
+  </section>
+
+  <div class="banner" id="wait" hidden></div>
+
+  <section class="box" id="workBox" hidden>
+    <h2><i>3</i> 미리보기·수정 <small id="docInfo"></small></h2>
+    <div class="work">
+      <div class="pane">
+        <h3><span>내용 고치기</span><span class="dirty" id="dirty" hidden>● 저장 안 됨</span></h3>
+        <div class="tabs" id="edTabs">
+          <button data-ed="form" aria-selected="true">칸별로</button>
+          <button data-ed="json" aria-selected="false">JSON 직접(항목 추가·삭제)</button>
+        </div>
+        <div class="editor" id="editor"></div>
+        <textarea id="jsonBox" rows="28" hidden spellcheck="false" style="font:13px/1.45 Consolas,monospace"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+          <button class="primary" id="save">고친 내용으로 다시 만들기</button>
+          <button id="reload">되돌리기</button>
+          <span class="note" id="saveMsg"></span>
+        </div>
+      </div>
+      <div class="pane">
+        <h3>미리보기 <small class="note" id="pvInfo"></small></h3>
+        <ul class="msgs" id="msgs"></ul>
+        <div class="pages" id="pages"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="box" id="finalBox" hidden>
+    <h2><i>4</i> 최종본 <small>검사(구조·첨부 대조·문체·빈 칸)를 통과한 판만 exports/제목_verN 으로 남습니다. 「한글로 열기」를 누르면 저장된 파일이 바로 열립니다</small></h2>
+    <button class="navy" id="final">최종본 저장</button>
+    <div id="fres" hidden></div>
+    <ul class="exlist" id="exports"></ul>
+  </section>
+</main>
+<div class="bar"><span id="msg">만들 문서를 고르세요</span></div>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="vTitle">
+  <div class="vbar"><b id="vTitle"></b><span id="vInfo"></span><button id="vClose">닫기 ✕</button></div>
+  <div class="vpages" id="vPages"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+let TOKEN = '', S = null, KIND = null, WORK = null, DIRTY = false, SHOWN = '', BUSY = false, SAMPLE = {}, PREFILLED = '', EXSIG = '', POLL = 0;
+const NEEDS_AGENT = {report: 1, invest: 1, gian: 1, 'form-new': 1};
+const SKIP = new Set(['type', 'style', 'schema', 'header_rows', 'widths', 'align', 'attachRef', 'copies', 'no', 'mode', 'file', 'files', 'kind',
+  'cover', 'toc', 'heading_style', 'label_style', 'page_break', 'path', 'width', 'bulletsAfterTable', 'disclosure', 'org', 'form', 'mark']);
+const LABEL = {title: '제목', heading: '대제목', text: '내용', label: '라벨', date: '날짜', dept: '부서', hq: '본부', approval: '결재라인',
+  sections: '대제목', items: '항목', children: '하위 항목', rows: '표', purpose: '추진하는 일', request: '요청 문장', basis: '관련근거',
+  recipient: '수신', attachments: '첨부', header: '머리', footer: '시행·연락처', email: '연락 메일', bullets: '항목', sub: '하위 항목',
+  cooperation: '협조', line: '결재선', name: '이름', role: '직위', drafter: '기안자', chapters: '장', parts: '절', caption: '그림 설명',
+  unit: '단위', docNo: '문서번호', closing: '맺음 줄', sender: '발신명의', schedule: '일정', months: '월', year: '연도', table: '표', values: '값',
+  head: '머리행', num: '번호'};
+
+function msg(t, err) { const m = $('#msg'); m.textContent = t; m.className = err ? 'err' : ''; }
+async function post(path, body, raw) {
+  const opt = {method: 'POST', headers: {'X-Studio-Token': TOKEN}};
+  if (raw) { Object.assign(opt.headers, raw.headers); opt.body = raw.body; }
+  else { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body || {}); }
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({ok: false, error: '응답을 읽지 못했습니다'}));
+  if (!r.ok && !('ok' in j)) j.ok = false;
+  return j;
+}
+function today(kind) { const d = new Date(); return kind === 'invest' ? `${d.getFullYear()}.${d.getMonth() + 1}` : `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}`; }
+function grow(t) { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, 360) + 'px'; }
+
+// ---------------- 1·2: 종류와 서식
+function pick(kind, quiet) {
+  KIND = kind;
+  $$('.kind').forEach(b => b.setAttribute('aria-pressed', b.dataset.kind === kind));
+  $('#opt').hidden = false;
+  $$('#opt [data-for]').forEach(x => x.hidden = x.dataset.for !== kind);
+  const T = {report: ['보고서 서식', '요약보고 양식(제목 박스·결재라인·날짜·부서)'], invest: ['투자계획서 서식', '상세보고 양식(표지·목차·장절)'],
+    gian: ['기안문 서식', S.gian ? '결재란까지 채우려면 첨부 폴더를 적으세요' : '기안문 스킬이 없어 본문만 만들 수 있습니다'], form: ['양식', '등록한 양식을 채우거나 새 양식을 만듭니다']}[kind];
+  $('#optTitle').textContent = T[0]; $('#optSub').textContent = T[1];
+  $$('[data-today]').forEach(i => { if (!i.value) i.value = today(i.dataset.today); });
+  if (kind === 'gian' && !S.gian) { $('input[name=gmode][value=body]').checked = true; $('input[name=gmode][value=full]').disabled = true; }
+  renderSamples(kind); gmode(); formTab(kind === 'form' ? 'list' : null);
+  if (!quiet) $('#opt').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+function gmode() { const full = $('input[name=gmode]:checked').value === 'full'; $$('[data-gfull]').forEach(x => x.hidden = !full); }
+let FTAB = 'list';
+function formTab(t) {
+  if (t) FTAB = t;
+  $$('[data-ft]').forEach(b => b.setAttribute('aria-selected', b.dataset.ft === FTAB));
+  $$('[data-ftp]').forEach(p => p.hidden = p.dataset.ftp !== FTAB);
+  const isForm = KIND === 'form';
+  $('#memoBox').hidden = isForm && FTAB === 'upload';
+  $('#create').hidden = isForm && FTAB !== 'nl';
+  $('#create').textContent = isForm ? '에이전트에게 이 양식 만들어 달라기' : '이 서식으로 만들기';
+}
+// ---------------- 샘플 양식·크게 보기
+function renderSamples(kind) {
+  const list = SAMPLE[kind] || [], box = $('#samples');
+  box.hidden = !list.length;
+  box.innerHTML = `<h3>샘플 양식 <small>· 이 서식으로 이렇게 만들어집니다. 누르면 크게 봅니다</small></h3><div class="sgrid">` +
+    list.map((s, i) => `<button class="scard" data-sample="${i}"><img src="/ui/samples/${encodeURIComponent(s.pages[0])}" alt="${esc(s.name)} 첫 쪽" loading="lazy">
+      <b>${esc(s.name)}</b><span>${esc(s.desc)}</span><span>${s.total}쪽${s.total > s.pages.length ? ` · 앞 ${s.pages.length}쪽 보기` : ''}</span></button>`).join('') + '</div>';
+}
+function openViewer(title, urls, info) {
+  $('#vTitle').textContent = title; $('#vInfo').textContent = info || `${urls.length}쪽`;
+  $('#vPages').innerHTML = urls.map((u, i) => `<img src="${u}" alt="${esc(title)} ${i + 1}쪽">`).join('');
+  $('#viewer').hidden = false; document.body.style.overflow = 'hidden'; $('#vPages').scrollTop = 0; $('#vClose').focus();
+}
+function closeViewer() { $('#viewer').hidden = true; document.body.style.overflow = ''; }
+
+function renderForms() {
+  $('#formList').innerHTML = S.forms.length ? S.forms.map(f => `<div class="fcard">${(f.preview || []).length ? `<img src="/forms/${encodeURIComponent(f.slug)}/${encodeURIComponent(f.preview[0])}" data-fview="${esc(f.slug)}" alt="${esc(f.name)} 빈 양식">` : ''}<b>${esc(f.name)}<span class="tag">${f.made_from === 'spec' ? '말로 만든 양식' : '올린 양식'}</span></b>
+      <p>${esc(f.description || '')}</p><p>항목 ${f.fields.length}개: ${esc(f.fields.slice(0, 6).join(', '))}${f.fields.length > 6 ? ' …' : ''}</p>
+      <button class="navy" data-use="${esc(f.slug)}">이 양식 채우기</button></div>`).join('')
+    : '<p class="note" style="grid-column:1/-1">아직 등록한 양식이 없습니다. 아래 자주 쓰는 양식을 누르거나 「내 양식 올리기」·「말로 새 양식 만들기」로 시작하세요.</p>';
+  const pre = (S.presets || []).filter(p => !p.registered);
+  $('#presets').hidden = !pre.length;
+  $('#presets').innerHTML = pre.length ?`<b>자주 쓰는 양식</b>${pre.map(p => `<button data-preset="${esc(p.name)}" title="${esc(p.desc)}">＋ ${esc(p.name)}</button>`).join('')}` +
+    '<span class="note" style="margin:0">누르면 바로 등록하고 채우기를 시작합니다(에이전트 없이 10~20초)</span>' : '';
+}
+// 고른 값(에이전트가 자료로 먼저 채운 초안 포함)을 서식 칸에 한 번 채운다. 사용자가 고치는 중에는 덮지 않는다
+function prefill(c) {
+  if (!c || PREFILLED === c.created_at) return;
+  PREFILLED = c.created_at;
+  const kind = c.kind === 'form-new' ? 'form' : c.kind;
+  if (kind !== KIND) pick(kind, true);
+  const box = $(`#opt [data-for="${kind}"]`);
+  if (c.kind === 'form-new') { $('#nlName').value = c.name || ''; $('#nlDesc').value = c.description || ''; formTab('nl'); }
+  else if (box) {
+    const t = box.querySelector('[data-k=title]'); if (t) t.value = c.title || '';
+    Object.entries(c.options || {}).forEach(([k, v]) => { const i = box.querySelector(`[data-o="${CSS.escape(k)}"]`); if (i) i.value = v; });
+    if (kind === 'gian' && c.options && c.options.mode) { const r = $(`input[name=gmode][value="${c.options.mode}"]`); if (r && !r.disabled) { r.checked = true; gmode(); } }
+  }
+  const memo = $('[data-k=memo]'); memo.value = c.memo || ''; memo.rows = Math.min(18, Math.max(5, (c.memo || '').split(String.fromCharCode(10)).length + 1));
+  const n = $('#aiNote'); n.hidden = c.by !== 'agent';
+  if (c.by === 'agent') n.innerHTML = `<b>AI가 자료로 먼저 작성한 값입니다.</b> ${c.basis ? esc(c.basis) + ' · ' : ''}이 값으로 바로 작성을 시작했습니다. ` +
+    `작은 수정은 아래 「미리보기·수정」에서 하고, 서식 자체를 바꾸려면 칸을 고친 뒤 「이 서식으로 다시 만들기」를 누르세요.`;
+  if (['report', 'invest', 'gian'].includes(kind)) $('#create').textContent = '이 서식으로 다시 만들기';
+}
+function collect() {
+  const box = $(`#opt [data-for="${KIND}"]`), o = {};
+  box.querySelectorAll('[data-o]').forEach(i => { if (i.value.trim() && !i.closest('[hidden]')) o[i.dataset.o] = i.value.trim(); });
+  if (KIND === 'gian') o.mode = $('input[name=gmode]:checked').value;
+  return {kind: KIND, title: (box.querySelector('[data-k=title]') || {}).value || '', memo: $('[data-k=memo]').value, options: o};
+}
+const KLABEL = {report: '보고서', invest: '투자계획서', gian: '기안문', form: '양식', 'form-new': '새 양식'};
+async function choose(body) {
+  if (S.doc && !confirm('지금 문서를 마치고 새로 시작합니다. 지금 문서는 studio/history 에 남고 최종본은 그대로입니다.')) return;
+  BUSY = true; $('#create').disabled = true; msg('저장하는 중…');
+  const r = await post('/api/choose', body);
+  BUSY = false; $('#create').disabled = false;
+  if (!r.ok) return msg(r.error || '고르지 못했습니다', true);
+  DIRTY = false; S = r.state; SHOWN = ''; paint();
+  msg(NEEDS_AGENT[body.kind] ? `${KLABEL[body.kind]} 서식을 골랐습니다. 에이전트가 작업 중이 아니면 채팅에서 「${KLABEL[body.kind]} 만들어줘」라고 요청하세요`
+    : '양식을 열었습니다. 주황 표시 칸(오늘 날짜·지난번 값·자동 계산)을 확인하고 나머지를 채운 뒤 「다시 만들기」를 누르세요');
+}
+// 최종본을 저장하면 작업 칸이 비므로 서식 칸도 비운다(다음 문서는 새로 요청)
+function clearOpt() {
+  $$('#opt input[type=text]:not([data-today]), #opt textarea').forEach(i => { i.value = ''; });
+  $('#aiNote').hidden = true; PREFILLED = '';
+  $('#create').textContent = '이 서식으로 만들기';
+}
+function exportRows(names) {
+  return names.map(n => `<li><b>${esc(n)}</b><button class="navy" data-open="${esc(n)}" data-how="open">한글로 열기</button>` +
+    `<button data-open="${esc(n)}" data-how="folder">폴더에서 보기</button><a href="/exports/${encodeURIComponent(n)}" download>내려받기</a></li>`).join('');
+}
+
+// ---------------- 3: 칸별 편집기(원천 JSON의 글자 칸)
+function getAt(o, p) { return p.reduce((a, k) => a?.[k], o); }
+function setAt(o, p, v) { getAt(o, p.slice(0, -1))[p.at(-1)] = v; }
+function ta(v, path, cls) { return `<textarea rows="1" data-p='${esc(JSON.stringify(path))}' class="${cls || ''}">${esc(v)}</textarea>`; }
+function summary(o) { const s = o.heading || o.title || o.label || o.text || o.name || o.dept || o.role || ''; return typeof s === 'string' ? s.slice(0, 28) : ''; }
+function node(v, path, key) {
+  const lab = LABEL[key] || key || '';
+  if (typeof v === 'string') return `<label class="field">${esc(lab)}${ta(v, path)}</label>`;
+  if (Array.isArray(v)) {
+    if (v.length && v.every(r => Array.isArray(r))) {
+      const rows = v.map((r, i) => `<tr>${r.map((c, j) => typeof c === 'string' ? `<td>${ta(c, [...path, i, j])}</td>`
+        : `<td class="ro">${esc(Array.isArray(c) ? c.map(x => x ? '●' : '·').join(' ') : c)}</td>`).join('')}</tr>`).join('');
+      return `<div class="field">${esc(lab)}<div class="grid-wrap"><table class="grid">${rows}</table></div></div>`;
+    }
+    return v.map((x, i) => typeof x === 'string' ? `<label class="field">${esc(lab)} ${i + 1}${ta(x, [...path, i])}</label>`
+      : `<fieldset><legend>${esc(lab)} ${i + 1}${summary(x) ? ' · ' + esc(summary(x)) : ''}</legend>${node(x, [...path, i], '')}</fieldset>`).join('');
+  }
+  if (v && typeof v === 'object') {
+    const inner = Object.entries(v).filter(([k, x]) => !SKIP.has(k) && (typeof x === 'string' || (x && typeof x === 'object')))
+      .map(([k, x]) => (x && typeof x === 'object' && !Array.isArray(x)) ? `<fieldset><legend>${esc(LABEL[k] || k)}</legend>${node(x, [...path, k], k)}</fieldset>` : node(x, [...path, k], k)).join('');
+    return inner;
+  }
+  return '';
+}
+// 양식 칸: 자동으로 채운 칸 표시(오늘 날짜·지난번 값·자동 계산), 날짜 칸 달력, 합계 즉시 계산, 빈 칸 「-」 한 번에
+const DATEF = /(기간|일자|날짜|일시|일)$/;
+function formEditor() {
+  const f = S.form || {fields: []}, vals = WORK.values || (WORK.values = {}), auto = (S.render && S.render.auto) || {}, sums = f.sums || {};
+  return `<label class="field">문서 이름(최종본 파일 이름)${ta(WORK.title || '', ['title'])}</label>` +
+    f.fields.map(k => `<label class="field"><span>${esc(k)}${auto[k] ? `<span class="tag auto">${esc(auto[k])}</span>` : ''}` +
+      `${sums[k] ? `<span class="tag">= ${esc(sums[k].join(' + '))}</span>` : ''}</span>${ta(vals[k] || '', ['values', k])}` +
+      (DATEF.test(k) ? `<span class="dates" data-dk>달력으로 고르기 <input type="date" aria-label="${esc(k)} 시작">` +
+        (/기간$/.test(k) ? ` ~ <input type="date" aria-label="${esc(k)} 끝">` : '') + '</span>' : '') + '</label>').join('') +
+    `<p><button id="dashAll">빈 칸은 모두 「-」로</button></p>` +
+    `<p class="note">비워 둔 칸은 {{항목}}으로 남고 최종본 저장이 막힙니다. 쓸 일이 없는 칸만 남았으면 위 단추로 한 번에 「-」를 넣으세요. 금액을 넣으면 합계는 저절로 바뀝니다. 줄바꿈은 Enter.</p>`;
+}
+function kdate(a, b) {  // 2026. 11. 13(금) / 2026. 11. 17(화) ~ 11. 18(수), 2일 / 하루면 당일
+  const W = '일월화수목금토', f = (d, y) => `${y ? d.getFullYear() + '. ' : ''}${d.getMonth() + 1}. ${d.getDate()}(${W[d.getDay()]})`;
+  if (b === undefined) return f(a, true);
+  if (!b || +b === +a) return f(a, true) + ' 당일';
+  if (b < a) [a, b] = [b, a];
+  return `${f(a, true)} ~ ${f(b, b.getFullYear() !== a.getFullYear())}, ${Math.round((b - a) / 864e5) + 1}일`;
+}
+function numv(s) { s = String(s ?? '').trim(); if (!s || s === '-') return 0; s = s.replace(/[, ]/g, '').replace(/원$/, ''); return /^-?\d+$/.test(s) ? +s : NaN; }
+function fieldTa(k) { return $$('#editor textarea').find(t => t.dataset.p === JSON.stringify(['values', k])); }
+function resum() {  // 서버(form_tool.autofill)와 같은 규칙: 더할 칸이 모두 숫자(빈 칸·「-」는 0)일 때만
+  const v = WORK.values || {};
+  Object.entries((S.form && S.form.sums) || {}).forEach(([k, ops]) => {
+    const ns = ops.map(o => numv(v[o]));
+    if (ns.some(isNaN) || ops.every(o => ['', '-'].includes(String(v[o] ?? '').trim()))) return;
+    const total = ns.reduce((a, b) => a + b, 0).toLocaleString('en-US'), t = fieldTa(k);
+    if (v[k] === total) return;
+    v[k] = total; if (t) { t.value = total; grow(t); }
+  });
+}
+let EDMODE = 'form';
+function paintEditor() {
+  const d = S.doc;
+  if (!d) { $('#editor').innerHTML = ''; return; }
+  WORK = JSON.parse(JSON.stringify(d.data));
+  $('#editor').innerHTML = d.kind === 'form' ? formEditor() : node(WORK, [], '');
+  $$('#editor textarea').forEach(grow);
+  $('#jsonBox').value = JSON.stringify(WORK, null, 1);
+  $('#edTabs').hidden = d.kind === 'form';
+  edMode(d.kind === 'form' ? 'form' : EDMODE);
+  setDirty(false);
+}
+function edMode(m) {
+  if (m === EDMODE && !$('#jsonBox').hidden === (m === 'json')) return;
+  if (m === 'form' && EDMODE === 'json') {
+    try { WORK = JSON.parse($('#jsonBox').value); } catch (e) { $('#saveMsg').textContent = 'JSON 오류: ' + e.message; return; }
+    $('#editor').innerHTML = S.doc.kind === 'form' ? formEditor() : node(WORK, [], ''); $$('#editor textarea').forEach(grow);
+  }
+  if (m === 'json') $('#jsonBox').value = JSON.stringify(WORK, null, 1);
+  EDMODE = m;
+  $$('#edTabs [data-ed]').forEach(b => b.setAttribute('aria-selected', b.dataset.ed === m));
+  $('#editor').hidden = m !== 'form'; $('#jsonBox').hidden = m !== 'json';
+}
+function setDirty(v) { DIRTY = v; $('#dirty').hidden = !v; }
+
+function paintRender() {
+  const r = S.render;
+  const items = [];
+  if (r) {
+    (r.errors || []).forEach(e => items.push(`<li class="e">${esc(e)}</li>`));
+    (r.left || []).length && items.push(`<li class="e">채우지 않은 항목: ${esc(r.left.join(', '))}</li>`);
+    (r.warns || []).forEach(w => items.push(`<li>${esc(w)}</li>`));
+    r.preview_error && items.push(`<li class="e">${esc(r.preview_error)}</li>`);
+  }
+  $('#msgs').innerHTML = items.join('');
+  $('#pvInfo').textContent = r ? `${r.pages?.length || 0}쪽 · ${r.file || '파일 없음'} · ${String(r.at || '').replace('T', ' ').slice(0, 19)}` : '';
+  $('#pages').innerHTML = r && r.pages && r.pages.length ? r.pages.map(p => `<img src="/preview/${encodeURIComponent(p)}?t=${encodeURIComponent(r.at)}" alt="${esc(p)}">`).join('')
+    : `<p>${r && r.ok ? '쪽 그림이 없습니다(한글이 필요합니다). 작업본 파일은 만들어졌습니다.' : '아직 미리보기가 없습니다.'}</p>`;
+}
+function paint() {
+  $('#proj').textContent = S.project;
+  $('#hw').textContent = S.hangul ? '한글 미리보기 가능' : '한글 없음 · 미리보기 불가';
+  renderForms();
+  const c = S.choice, r = S.render, d = S.doc;
+  const kindNow = d ? (d.kind === 'report' && c && c.kind === 'invest' ? 'invest' : d.kind === 'report' && c && c.kind === 'gian' ? 'gian' : d.kind) : (c ? (c.kind === 'form-new' ? 'form' : c.kind) : S.hint);
+  if (c) prefill(c);
+  if (kindNow && !KIND) pick(kindNow, true);
+  const waiting = c && NEEDS_AGENT[c.kind] && (!r || String(r.at) < String(c.created_at) || !d);
+  $('#wait').hidden = !waiting;
+  if (waiting) $('#wait').innerHTML = c.kind === 'form-new' ? `<b>「${esc(c.name)}」 양식을 에이전트가 만들고 있습니다.</b> 다 되면 「등록된 양식」에 나타나고 바로 채울 수 있습니다.`
+    : `<b>${esc(c.label)} 서식을 골랐습니다.</b> 에이전트가 내용을 채워 작업본을 만들면 아래에 미리보기가 나타납니다. 에이전트가 작업 중이 아니면 채팅에서 「${esc(c.label)} 만들어줘」라고 요청하세요.`;
+  $('#workBox').hidden = !d; $('#finalBox').hidden = !d && !S.exports.length; $('#final').hidden = !d;
+  if (d) $('#docInfo').textContent = `${({report: '보고서·투자계획서·기안문 본문', gian: '기안문(결재란까지)', form: '양식 채우기'})[d.kind]} · doc/${d.name}` + (S.form ? ` · ${S.form.name}` : '');
+  const sig = JSON.stringify([d && d.data, r && r.at]);
+  if (sig !== SHOWN) {
+    if (!DIRTY) { paintEditor(); paintRender(); SHOWN = sig; }
+    else $('#saveMsg').innerHTML = '에이전트가 원천을 새로 만들었습니다. <button id="takeNew">새 판 불러오기</button>';
+  }
+  const exsig = S.exports.join('|');  // 바뀐 때만 다시 그린다(누르는 중에 단추가 바뀌지 않게)
+  if (exsig !== EXSIG) { EXSIG = exsig; $('#exports').innerHTML = exportRows(S.exports.slice().reverse()); }
+}
+async function refresh() { if (BUSY) return; S = await (await fetch('/api/state', {cache: 'no-store'})).json(); paint(); }
+
+async function saveDoc() {
+  if (EDMODE === 'json') { try { WORK = JSON.parse($('#jsonBox').value); } catch (e) { return $('#saveMsg').textContent = 'JSON 오류: ' + e.message; } }
+  BUSY = true; $('#save').disabled = true; $('#save').textContent = '만드는 중…(한글로 쪽 그림까지 10~30초)'; $('#saveMsg').textContent = '';
+  const r = await post('/api/save', {data: WORK});
+  BUSY = false; $('#save').disabled = false; $('#save').textContent = '고친 내용으로 다시 만들기';
+  if (!r.ok) return $('#saveMsg').textContent = r.error || '저장하지 못했습니다';
+  S = r.state; setDirty(false); SHOWN = ''; paint();
+  $('#saveMsg').textContent = r.render.ok ? '다시 만들었습니다. 이전 원천은 studio/history 에 남았습니다' : '저장했지만 만들기에 실패했습니다(오른쪽 메시지)';
+}
+function showFinal(r) {
+  const box = $('#fres'); box.hidden = false;
+  if (r.ok) {
+    box.className = 'res ok';
+    box.innerHTML = `<b>ver${r.version} 최종본을 저장하고 작업 칸을 비웠습니다.</b> 다음 문서(예: 이 보고서로 기안문)는 채팅에서 요청하세요. 작업하던 원천은 studio/history 에 남습니다. 다 끝났으면 오른쪽 위 「스튜디오 종료」로 닫으세요.<ul class="exlist">${exportRows(r.files)}</ul>` +
+      `<br>${r.gate ? `문체·숫자 검사: ${esc(r.gate.label || '')} 통과${r.gate.facts ? '(근거 대조 포함)' : '(근거 파일 없음 · 문체만)'} · ` : ''}화면 확인: ${r.screen_checked ? '한글로 열어 확인' : '못 함(한글 없음)'}` +
+      ((r.warns || []).length ? `<ul>${r.warns.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : '') + ((r.notes || []).length ? `<br>${esc(r.notes.join(' / '))}` : '');
+  } else {
+    box.className = 'res bad';
+    box.innerHTML = `<b>${esc(r.stage || '')} 단계에서 멈췄습니다.</b> ${esc(r.error || '')}<ul>${(r.problems || []).map(p => `<li>${esc(p)}</li>`).join('')}</ul>고친 뒤 다시 누르거나, 에이전트에게 위 항목을 고쳐 달라고 하세요.`;
+  }
+}
+
+// ---------------- 이벤트
+$('#kinds').addEventListener('click', e => { const b = e.target.closest('.kind'); if (b) pick(b.dataset.kind); });
+$$('input[name=gmode]').forEach(i => i.addEventListener('change', gmode));
+$$('[data-ft]').forEach(b => b.addEventListener('click', () => formTab(b.dataset.ft)));
+$$('#edTabs [data-ed]').forEach(b => b.addEventListener('click', () => edMode(b.dataset.ed)));
+$('#create').addEventListener('click', () => {
+  if (KIND === 'form') {
+    const name = $('#nlName').value.trim(), description = $('#nlDesc').value.trim();
+    if (!name || !description) return msg('새 양식의 이름과 설명을 적어 주세요', true);
+    return choose({kind: 'form-new', name, description, memo: $('[data-k=memo]').value});
+  }
+  const b = collect();
+  if (KIND === 'gian' && b.options.mode === 'full' && !b.options.attach_dir && !b.memo.trim()) return msg('첨부 폴더 경로나 내용 메모를 적어 주세요', true);
+  choose(b);
+});
+$('#formList').addEventListener('click', e => {
+  const v = e.target.closest('[data-fview]');
+  if (v) { const f = S.forms.find(x => x.slug === v.dataset.fview); return openViewer(f.name + ' (빈 양식)', f.preview.map(p => `/forms/${encodeURIComponent(f.slug)}/${encodeURIComponent(p)}`)); }
+  const b = e.target.closest('[data-use]'); if (b) choose({kind: 'form', form: b.dataset.use, memo: $('[data-k=memo]').value});
+});
+$('#presets').addEventListener('click', async e => {
+  const b = e.target.closest('[data-preset]'); if (!b || BUSY) return;
+  BUSY = true; $$('#presets button').forEach(x => x.disabled = true); msg(`「${b.dataset.preset}」 양식을 등록하는 중…(10~20초)`);
+  const r = await post('/api/form/preset', {name: b.dataset.preset});
+  BUSY = false;
+  if (!r.ok) { renderForms(); return msg(r.error || '등록하지 못했습니다', true); }
+  S.forms = r.forms; S.presets = r.presets; renderForms();
+  choose({kind: 'form', form: r.form.slug, memo: $('[data-k=memo]').value});
+});
+$('#samples').addEventListener('click', e => {
+  const c = e.target.closest('[data-sample]'); if (!c) return;
+  const s = SAMPLE[KIND][+c.dataset.sample];
+  openViewer(s.name, s.pages.map(p => '/ui/samples/' + encodeURIComponent(p)), `${s.total}쪽${s.total > s.pages.length ? ` 중 ${s.pages.length}쪽` : ''} · ${s.desc}`);
+});
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-open]');
+  if (!b || b.disabled) return;
+  const label = b.textContent, folder = b.dataset.how === 'folder';
+  b.disabled = true; b.textContent = folder ? '여는 중…' : '한글로 여는 중…';
+  const r = await post('/api/open', {file: b.dataset.open, how: b.dataset.how});
+  msg(r.ok ? (folder ? `탐색기에서 ${b.dataset.open} 파일을 보여 줍니다` : `${b.dataset.open} 파일을 한글로 열었습니다(한글 창을 확인하세요)`) : (r.error || '열지 못했습니다'), !r.ok);
+  setTimeout(() => { b.disabled = false; b.textContent = label; }, 2500);
+});
+$('#vClose').addEventListener('click', closeViewer);
+$('#viewer').addEventListener('click', e => { if (e.target.id === 'vPages' || e.target.id === 'viewer') closeViewer(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#viewer').hidden) closeViewer(); });
+$('#upBtn').addEventListener('click', async () => {
+  const f = $('#upFile').files[0];
+  if (!f) return msg('올릴 한글 파일을 고르세요', true);
+  $('#upBtn').disabled = true; msg('등록하는 중…');
+  const r = await post('/api/form/upload', null, {headers: {'X-File-Name': encodeURIComponent(f.name), 'X-Form-Name': encodeURIComponent($('#upName').value.trim() || f.name.replace(/\.[^.]+$/, '')),
+    'X-Form-Desc': encodeURIComponent($('#upDesc').value.trim()), 'Content-Type': 'application/octet-stream'}, body: f});
+  $('#upBtn').disabled = false;
+  if (!r.ok) return msg(r.error || '등록하지 못했습니다', true);
+  S.forms = r.forms; renderForms(); formTab('list');
+  msg(`「${r.form.name}」 양식을 등록했습니다(항목 ${r.form.fields.length}개). 「이 양식 채우기」를 누르세요`);
+});
+$('#editor').addEventListener('input', e => {
+  const t = e.target; if (!t.dataset.p) return;
+  setAt(WORK, JSON.parse(t.dataset.p), t.value); grow(t); setDirty(true);
+  if (S.doc && S.doc.kind === 'form') resum();
+});
+$('#editor').addEventListener('change', e => {  // 달력에서 고른 날짜를 칸에 적는다
+  const box = e.target.closest('[data-dk]'); if (!box) return;
+  const [a, b] = [...box.querySelectorAll('input[type=date]')].map(i => i.value ? new Date(i.value + 'T00:00') : null);
+  if (!a) return;
+  const t = box.parentElement.querySelector('textarea');
+  t.value = kdate(a, box.querySelectorAll('input[type=date]').length > 1 ? b : undefined);
+  t.dispatchEvent(new Event('input', {bubbles: true}));
+});
+$('#editor').addEventListener('click', e => {
+  if (e.target.id !== 'dashAll') return;
+  e.preventDefault();
+  let n = 0;
+  $$('#editor textarea').forEach(t => { const p = JSON.parse(t.dataset.p); if (p[0] === 'values' && !t.value.trim()) { t.value = '-'; setAt(WORK, p, '-'); n++; } });
+  if (n) { setDirty(true); resum(); }
+  $('#saveMsg').textContent = n ? `빈 칸 ${n}개에 「-」를 적었습니다. 「고친 내용으로 다시 만들기」를 누르세요` : '빈 칸이 없습니다';
+});
+$('#jsonBox').addEventListener('input', () => setDirty(true));
+$('#save').addEventListener('click', saveDoc);
+$('#reload').addEventListener('click', () => { setDirty(false); SHOWN = ''; $('#saveMsg').textContent = ''; paint(); });
+$('#saveMsg').addEventListener('click', e => { if (e.target.id === 'takeNew') { setDirty(false); SHOWN = ''; $('#saveMsg').textContent = ''; paint(); } });
+$('#final').addEventListener('click', async () => {
+  if (DIRTY && !confirm('저장하지 않은 수정이 있습니다. 마지막으로 만든 판으로 최종본을 만들까요?')) return;
+  BUSY = true; $('#final').disabled = true; $('#final').textContent = '검사·만들기 중…';
+  const r = await post('/api/finalize');
+  BUSY = false; $('#final').disabled = false; $('#final').textContent = '최종본 저장';
+  showFinal(r); if (r.ok) clearOpt(); if (r.state) { S = r.state; SHOWN = ''; if (!DIRTY) paint(); }
+});
+$('#quit').addEventListener('click', async () => {
+  if (BUSY || (S && S.busy)) return msg('문서를 만드는 중입니다. 끝난 뒤 닫으세요', true);
+  if (!confirm((DIRTY ? '저장하지 않은 수정은 사라집니다. ' : '') + '스튜디오를 닫을까요? 작업본과 최종본 파일은 프로젝트 폴더에 그대로 남습니다.')) return;
+  const r = await post('/api/shutdown').catch(() => ({ok: false, error: '서버에 닿지 못했습니다(이미 닫혔을 수 있습니다)'}));
+  if (!r.ok) return msg(r.error || '닫지 못했습니다', true);
+  clearInterval(POLL); DIRTY = false;
+  document.querySelector('main').innerHTML = '<section class="box"><h2>스튜디오를 닫았습니다</h2><p>작업본과 최종본(exports)은 프로젝트 폴더에 그대로 있습니다. 이 탭은 닫아도 됩니다.</p>' +
+    '<p class="note">다시 열려면 채팅에서 「스튜디오 다시 열어줘」라고 하세요.</p></section>';
+  $('#quit').hidden = true; msg('스튜디오를 닫았습니다');
+});
+window.addEventListener('beforeunload', e => { if (DIRTY) { e.preventDefault(); e.returnValue = ''; } });
+
+(async () => {
+  TOKEN = await (await fetch('/api/token', {cache: 'no-store'})).text();
+  SAMPLE = await fetch('/ui/samples/samples.json', {cache: 'no-store'}).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  await refresh();
+  msg(S.doc ? '왼쪽에서 고친 뒤 「다시 만들기」, 다 되면 「최종본 저장」을 누르세요' : S.choice ? '골랐습니다. 에이전트가 작업본을 만들면 미리보기가 나타납니다' : '만들 문서를 고르세요');
+  POLL = setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 3000);
+})().catch(e => msg('스튜디오를 불러오지 못했습니다: ' + e.message, true));
+</script>
+</body>
+</html>

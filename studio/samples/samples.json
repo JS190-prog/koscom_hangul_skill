@@ -1,0 +1,68 @@
+{
+ "report": [
+  {
+   "name": "요약보고 샘플",
+   "desc": "원본 보고서 양식의 Sample(결과보고)을 옮긴 예 — 제목 박스·결재라인·□ ㅇ - ··표·참고 박스",
+   "pages": [
+    "report-1-page-01.webp",
+    "report-1-page-02.webp"
+   ],
+   "total": 2
+  }
+ ],
+ "invest": [
+  {
+   "name": "상세보고 샘플",
+   "desc": "원본 투자계획서 양식의 Sample — 표지·목차·장(I, II)과 절 박스·그림",
+   "pages": [
+    "invest-2-page-01.webp",
+    "invest-2-page-02.webp",
+    "invest-2-page-03.webp",
+    "invest-2-page-04.webp",
+    "invest-2-page-05.webp",
+    "invest-2-page-06.webp"
+   ],
+   "total": 7
+  }
+ ],
+ "gian": [
+  {
+   "name": "결재란까지 갖춘 기안문",
+   "desc": "첨부 4건(근거 공문·보고서·투자계획서·견적서)으로 만든 시연용 기안 — 수신·결재·협조·시행 칸까지",
+   "pages": [
+    "gian-3-page-01.webp",
+    "gian-3-page-02.webp",
+    "gian-3-page-03.webp"
+   ],
+   "total": 3
+  },
+  {
+   "name": "기안문 본문만",
+   "desc": "전자결재 본문 칸에 붙이는 관련근거 → 요청 문장 → 아래 → 번호 항목",
+   "pages": [
+    "gian-4-page-01.webp",
+    "gian-4-page-02.webp",
+    "gian-4-page-03.webp"
+   ],
+   "total": 3
+  }
+ ],
+ "form": [
+  {
+   "name": "말로 만든 양식: 국내 출장 신청서",
+   "desc": "「결재라인, 출장자·기간 표, 경비 표, 특이 사항」이라고 설명해 만든 빈 양식",
+   "pages": [
+    "form-5-page-01.webp"
+   ],
+   "total": 1
+  },
+  {
+   "name": "같은 양식을 채운 모습",
+   "desc": "값을 넣으면 렌더러가 칸 너비·자간·줄을 값 길이에 맞춰 다시 그린다",
+   "pages": [
+    "form-6-page-01.webp"
+   ],
+   "total": 1
+  }
+ ]
+}
