@@ -1,3 +1,5 @@
+import kr.dogfoot.hwplib.object.bodytext.control.Control;
+import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
 
 import java.util.ArrayList;
@@ -6,8 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 기안문(type: draft). 머리(수신자·제목)와 꼬리(첨부·결재·시행 정보)는 전자결재 시스템이 만드는 영역이라
- * 양식 그대로 두고, 그 사이 본문만 만든다: 관련 근거 → 요청 문장 → "- 아 래 -" → 번호 항목(1. 2. …).
+ * 기안문(type: draft). 본문을 만든다: 관련 근거 → 요청 문장 → "- 아 래 -" → 번호 항목(1. 2. …).
+ * 머리(수신자·제목)와 첨부 목록은 recipient · title · attachments를 주면 채우고, 없으면 양식의 「시스템 자동생성 영역」 그대로 둔다.
+ * 결재 · 협조 · 시행 정보는 전자결재 시스템이 만드는 영역이라 양식 그대로 둔다.
  * 빈 줄(맑은 고딕 12pt)은 양식대로 번호 항목 앞, 항목 제목과 첫 내용 사이, ㅇ 항목 사이에만 넣는다.
  */
 public class DraftRenderer extends Renderer {
@@ -26,6 +29,7 @@ public class DraftRenderer extends Renderer {
 
     void draft(Map<String, Object> r) throws Exception {
         List<Paragraph> out = c.out;
+        header(str(r, "recipient", ""), str(r, "title", ""));
         out.add(c.proto("HEAD"));
         List<Object> basis = r.get("basis") instanceof String ? new ArrayList<>(Arrays.asList(r.get("basis"))) : list(r, "basis");
         if (basis.size() > ORDER.length()) throw new IllegalArgumentException("관련 근거는 " + ORDER.length() + "건까지");
@@ -55,7 +59,36 @@ public class DraftRenderer extends Renderer {
             draftItems(out, list(s, "items"), paren, true);
         }
         out.add(c.proto("GAP"));
-        out.addAll(c.protoRange("FOOTER"));
+        List<Paragraph> footer = c.protoRange("FOOTER");
+        List<Object> atts = list(r, "attachments");
+        if (!atts.isEmpty()) {          // 꼬리 첫 줄 「첨부 //. 끝.」 안내를 첨부 목록으로 바꾼다(둘째 줄부터 번호를 첫 항목 번호에 맞춤)
+            Paragraph proto = footer.remove(0);
+            for (int i = 0; i < atts.size(); i++) {
+                String head = atts.size() == 1 ? "첨부 " : i == 0 ? "첨부 1. " : "     " + (i + 1) + ". ";
+                String end = i == atts.size() - 1 ? ". 끝." : "";
+                out.add(setText(proto.clone(), head + String.valueOf(atts.get(i)).trim() + end, bodyCs()));
+            }
+        }
+        out.addAll(footer);
+    }
+
+    /** 본문 글자모양(관련 근거 · 요청 문장 줄과 같은 것). 머리 값 칸과 첨부 목록에 쓴다. */
+    int bodyCs() {
+        return (int) c.proto("TOP").getCharShape().getPositonShapeIdPairList().get(0).getShapeId();
+    }
+
+    /** 머리 표의 수신자 · 제목 값 칸을 채운다. 저장할 때 구역 문단의 컨트롤(머리 표)을 복사하므로 원형 문단의 표를 고친다. */
+    void header(String recipient, String title) throws Exception {
+        if (recipient.isEmpty() && title.isEmpty()) return;
+        for (Control ct : c.base[c.index("SECTION")].getControlList()) {
+            if (!(ct instanceof ControlTable) || ((ControlTable) ct).getRowList().size() != 2) continue;
+            ControlTable t = (ControlTable) ct;
+            if (!plainText(cell(t, 0, 0).getParagraphList().getParagraph(0)).startsWith("수신자")) continue;
+            if (!recipient.isEmpty()) setText(cell(t, 0, 1).getParagraphList().getParagraph(0), recipient, bodyCs());
+            if (!title.isEmpty()) setText(cell(t, 1, 1).getParagraphList().getParagraph(0), title, bodyCs());
+            return;
+        }
+        throw new IllegalStateException("기안문 양식에서 수신자 · 제목 칸을 찾지 못함");
     }
 
     /** 라벨은 "라벨 : 내용"(기본) 또는 "(라벨) 내용"(label_style: paren, 라벨 굵게). 표는 앞뒤 빈 줄 없이 붙인다. */

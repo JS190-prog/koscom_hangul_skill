@@ -207,6 +207,16 @@ def main():
             render(src, out)
             assert vt.clean_lines(vt.read_text(out)) == vt.clean_lines(vt.read_text(src)), f"다시 읽기 불일치: {src.name}"
             assert b"NOEND" not in dump(out), f"문단 끝 문자 빠짐(한글이 손상 문서로 거부): {src.name}"
+        # 기안문 머리(수신자 · 제목)와 첨부 목록: 주면 양식의 「시스템 자동생성 영역」 대신 채운다
+        dj = td / "draft_head.json"
+        dj.write_text(json.dumps({**json.loads((ex / "draft_sample.json").read_text(encoding="utf-8")),
+                                  "recipient": "경영지원부장", "title": "본사 회의실 화상회의 장비 교체 추진 및 계약 체결 의뢰",
+                                  "attachments": ["장비 교체 추진 방안 1부", "견적서 1부"]}, ensure_ascii=False), encoding="utf-8")
+        render(dj, td / "draft_head.hwp")
+        d = dump(td / "draft_head.hwp").decode("utf-8", "replace")
+        for want in ('"경영지원부장"', '"본사 회의실 화상회의 장비 교체 추진 및 계약 체결 의뢰"', '"첨부 1. 장비 교체 추진 방안 1부"', '"     2. 견적서 1부. 끝."'):
+            assert want in d, f"기안문 머리 · 첨부 목록 빠짐: {want}"
+        assert "시스템 자동생성 영역" not in d and "NOEND" not in d, "기안문 머리 · 첨부 안내 문구가 남음"
         print("10) 전체 흐름 OK: AI투 report.json 불합격", sorted(tags), "-> 다시 쓴 report.json 합격 -> 렌더링", last.split()[0],
               "-> .hwp 검사 합격, 다시 읽기 일치·문단 끝 문자 5종(요약·박스/참고·요약 예시·상세 예시·기안문 예시)")
 
