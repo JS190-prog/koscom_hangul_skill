@@ -1,6 +1,10 @@
 import kr.dogfoot.hwplib.object.bodytext.control.Control;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
+import kr.dogfoot.hwplib.object.bodytext.control.ctrlheader.gso.GsoHeaderProperty;
+import kr.dogfoot.hwplib.object.bodytext.control.ctrlheader.gso.RelativeArrange;
+import kr.dogfoot.hwplib.object.bodytext.control.ctrlheader.gso.VertRelTo;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
+import kr.dogfoot.hwplib.object.docinfo.parashape.Alignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,8 +13,9 @@ import java.util.Map;
 
 /**
  * 기안문(type: draft). 본문을 만든다: 관련 근거 → 요청 문장 → "- 아 래 -" → 번호 항목(1. 2. …).
- * 머리(수신자·제목)와 첨부 목록은 recipient · title · attachments를 주면 채우고, 없으면 양식의 「시스템 자동생성 영역」 그대로 둔다.
- * 결재 · 협조 · 시행 정보는 전자결재 시스템이 만드는 영역이라 양식 그대로 둔다.
+ * 머리(수신자·제목)는 recipient · title을 주면 채우고, 없으면 양식의 「시스템 자동생성 영역」 그대로 둔다.
+ * 첨부 목록은 attachments를 주면 「첨부 1. … 1부. 끝.」으로 쓰고, 없으면 본문 마지막 줄 끝에 「끝.」을 붙인다.
+ * 결재 · 협조 · 시행 정보는 전자결재 시스템이 만드는 영역이라 양식 글 그대로 두고, 그 표는 쪽 아래에 붙인다(작성사례와 같음).
  * 빈 줄(맑은 고딕 12pt)은 양식대로 번호 항목 앞, 항목 제목과 첫 내용 사이, ㅇ 항목 사이에만 넣는다.
  */
 public class DraftRenderer extends Renderer {
@@ -58,18 +63,64 @@ public class DraftRenderer extends Renderer {
             out.add(h);
             draftItems(out, list(s, "items"), paren, true);
         }
+        List<Object> atts = list(r, "attachments");
+        if (atts.isEmpty()) endMark(out);       // 첨부가 없으면 본문 끝에 「끝.」
         out.add(c.proto("GAP"));
         List<Paragraph> footer = c.protoRange("FOOTER");
-        List<Object> atts = list(r, "attachments");
-        if (!atts.isEmpty()) {          // 꼬리 첫 줄 「첨부 //. 끝.」 안내를 첨부 목록으로 바꾼다(둘째 줄부터 번호를 첫 항목 번호에 맞춤)
-            Paragraph proto = footer.remove(0);
-            for (int i = 0; i < atts.size(); i++) {
-                String head = atts.size() == 1 ? "첨부 " : i == 0 ? "첨부 1. " : "     " + (i + 1) + ". ";
-                String end = i == atts.size() - 1 ? ". 끝." : "";
-                out.add(setText(proto.clone(), head + String.valueOf(atts.get(i)).trim() + end, bodyCs()));
-            }
+        Paragraph proto = footer.remove(0);     // 꼬리 첫 줄 「첨부 //. 끝.」 안내 — 첨부 목록으로 바꾸거나(둘째 줄부터 번호를 첫 항목 번호에 맞춤) 뺀다
+        for (int i = 0; i < atts.size(); i++) {
+            String head = atts.size() == 1 ? "첨부 " : i == 0 ? "첨부 1. " : "     " + (i + 1) + ". ";
+            String end = i == atts.size() - 1 ? ". 끝." : "";
+            Paragraph p = setText(proto.clone(), head + String.valueOf(atts.get(i)).trim() + end, bodyCs());
+            // 두 줄로 넘어가면 머리(「첨부 1. 」 · 「     2. 」) 다음 글자에 맞춘다. 내어쓰기 값은 작성사례 문단모양(ps20 · ps19) 그대로
+            p.getHeader().setParaShapeId(attPs(p.getHeader().getParaShapeId(), atts.size() == 1 ? -5800 : i == 0 ? -9048 : -7632));
+            out.add(p);
         }
+        anchorTail(footer);
         out.addAll(footer);
+    }
+
+    /** 첨부 목록 줄의 내어쓰기 문단모양(왼쪽 정렬 — 긴 첫 줄이 양쪽 정렬로 벌어지지 않게). */
+    int attPs(int base, int hang) {
+        return boxPs.computeIfAbsent("att/" + base + "/" + hang, k -> {
+            int id = addParaShape(c.hwp, base, 0, hang);
+            c.hwp.getDocInfo().getParaShapeList().get(id).getProperty1().setAlignment(Alignment.Left);
+            return id;
+        });
+    }
+
+    /** 본문 마지막 줄 끝에 「  끝.」을 붙인다(마지막이 표면 다음 줄에 「끝.」). */
+    void endMark(List<Paragraph> out) throws Exception {
+        Paragraph last = out.get(out.size() - 1);
+        if (firstTable(last) != null) {
+            out.add(line("TOP", "끝."));
+            return;
+        }
+        List<Run> runs = getRuns(last);
+        runs.add(new Run("  끝.", runs.isEmpty() ? bodyCs() : runs.get(runs.size() - 1).cs));
+        setRuns(last, runs);
+    }
+
+    /**
+     * 결재 · 협조 · 시행 칸(꼬리 표)을 작성사례처럼 쪽 아래에 붙인다: 표를 쪽 기준 아래 정렬로 두고, 표 앞 빈 줄은 한 줄만 남긴다.
+     * 양식은 표 앞 빈 줄 27개로 표를 내려 두어, 본문이 한 쪽을 넘으면 결재 칸만 다음 쪽으로 넘어갔다.
+     */
+    static void anchorTail(List<Paragraph> footer) {
+        int t = -1;
+        for (int i = 0; i < footer.size() && t < 0; i++)
+            if (footer.get(i).getControlList() != null)
+                for (Control ct : footer.get(i).getControlList())
+                    if (ct instanceof ControlTable && ((ControlTable) ct).getRowList().size() >= 10) {
+                        GsoHeaderProperty pr = ((ControlTable) ct).getHeader().getProperty();
+                        pr.setVertRelTo(VertRelTo.Page);
+                        pr.setVertRelativeArrange(RelativeArrange.BottomOrRight);
+                        t = i;
+                    }
+        if (t < 0) throw new IllegalStateException("기안문 양식에서 결재 칸 표를 찾지 못함");
+        int b = t;
+        while (b > 0 && plainText(footer.get(b - 1)).trim().isEmpty()
+                && (footer.get(b - 1).getControlList() == null || footer.get(b - 1).getControlList().isEmpty())) b--;
+        for (int i = t - 1; i > b; i--) footer.remove(i);
     }
 
     /** 본문 글자모양(관련 근거 · 요청 문장 줄과 같은 것). 머리 값 칸과 첨부 목록에 쓴다. */
@@ -97,7 +148,11 @@ public class DraftRenderer extends Renderer {
             @SuppressWarnings("unchecked") Map<String, Object> it = (Map<String, Object>) o;
             String type = str(it, "type", "o");
             if (type.equals("table")) {
-                if (!str(it, "unit", "").isEmpty()) out.add(line("UNIT", str(it, "unit", "")));
+                if (!str(it, "unit", "").isEmpty()) {
+                    Paragraph u = line("UNIT", str(it, "unit", ""));
+                    keepNext.add(u);            // 단위 줄만 쪽 끝에 남고 표가 다음 쪽으로 넘어가지 않게
+                    out.add(u);
+                }
                 out.add(table(it));
             } else {
                 if (!TYPES.contains(type))

@@ -266,7 +266,7 @@ def clean_lines(text):
         if not s or s.startswith("|") or s.startswith("![") or s.startswith("(단위") or re.match(r"^<\s*.*>$", s) or _FIXED.match(s):
             continue
         s = re.sub(r"</?(u|sup)>", "", s).replace("**", "").replace("\\*", "*").replace("\\~", "~")
-        s = _HEAD.sub("", s)
+        s = re.sub(r"\s+끝\.$", "", _HEAD.sub("", s))      # 기안문 본문 끝 표시 「  끝.」은 문장이 아니다
         if len(s) >= MIN_LINE:
             out.append(s)
     return out
