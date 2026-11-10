@@ -17,6 +17,7 @@
      양식별 기본 문체(templates/voice)로 각 양식 예시가 검사를 통과한다
 """
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -217,6 +218,23 @@ def main():
         for want in ('"경영지원부장"', '"본사 회의실 화상회의 장비 교체 추진 및 계약 체결 의뢰"', '"첨부 1. 장비 교체 추진 방안 1부"', '"     2. 견적서 1부. 끝."'):
             assert want in d, f"기안문 머리 · 첨부 목록 빠짐: {want}"
         assert "시스템 자동생성 영역" not in d and "NOEND" not in d, "기안문 머리 · 첨부 안내 문구가 남음"
+        # 첨부가 없으면 꼬리의 안내 줄 대신 본문 마지막 줄 끝에 「끝.」. 결재 칸 표 앞 양식 빈 줄은 한 줄만
+        # (양식의 빈 줄 27개가 결재 칸을 밀어 본문이 길면 결재 칸만 다음 쪽으로 넘어갔다 — 표는 쪽 아래에 붙인다)
+        d0 = dump(td / "draft_sample_rt.hwp").decode("utf-8", "replace")
+        assert "첨부∨" not in d0 and re.search(r'  끝\."\s*$', d0, re.M), "첨부 없는 기안문의 끝 표시"
+
+        def blanks_before_tail(dd):
+            tops, tail = [], None
+            for ln in dd.splitlines():
+                if re.match(r"#\d+ ", ln):
+                    tops.append(ln.rstrip().endswith('""'))
+                elif "TABLE 15x30" in ln and tail is None:
+                    tail = len(tops) - 1
+            n = 0
+            while tail - 1 - n >= 0 and tops[tail - 1 - n]:
+                n += 1
+            return n
+        assert blanks_before_tail(d) <= 2 and blanks_before_tail(d0) <= 2, "결재 칸 앞 빈 줄이 남음"   # 본문 끝 빈 줄 + 양식 빈 줄 1(전에는 27)
         print("10) 전체 흐름 OK: AI투 report.json 불합격", sorted(tags), "-> 다시 쓴 report.json 합격 -> 렌더링", last.split()[0],
               "-> .hwp 검사 합격, 다시 읽기 일치·문단 끝 문자 5종(요약·박스/참고·요약 예시·상세 예시·기안문 예시)")
 
