@@ -250,11 +250,15 @@ def main():
         dt.write_text(json.dumps({"type": "draft", "basis": ["운영2026-0864(2026. 8. 18. : 제한경쟁입찰 실시)"],
                                   "request": "위 관련근거에 의거하여 BMT 결과를 통보하오니 업무에 협조하여 주시기 바랍니다.",
                                   "notes": [{"type": "ref", "text": "BMT 결과는 별도 제출"}], "sections": [],
-                                  "attachments": ["[운영2026-0864] 제한경쟁입찰 실시 (2026. 8. 18.) 1부"]}, ensure_ascii=False), encoding="utf-8")
+                                  "attachments": ["[운영2026-0864] 제한경쟁입찰 실시 (2026. 8. 18.) 1부"],
+                                  "issue": "사이버보안2026-163  (2026. 9. 9.)"}, ensure_ascii=False), encoding="utf-8")
         render(dt, td / "draft_notice.hwp")
         got = vt.read_text(td / "draft_notice.hwp")
         assert vt.clean_lines(got) == vt.clean_lines(vt.read_text(dt)), "통보문 다시 읽기 불일치"
         assert "아    래" not in got and "※ BMT 결과는 별도 제출" in got and "2. 위 관련근거에 의거하여" in got, "통보문 모양"
+        # 시행된 문서를 다시 만들면 꼬리 표 시행 칸에 문서번호 · 시행일(첨부로 읽는 다음 기안이 쓴다). 주지 않으면 양식 그대로 「시행」
+        assert '"시행  사이버보안2026-163  (2026. 9. 9.)"' in dump(td / "draft_notice.hwp").decode("utf-8", "replace"), "시행 칸"
+        assert '"시행  "' in d0, "issue 없이 시행 칸이 바뀜"
         # 예산 표 합계 행: 기안문 양식처럼 앞 두 칸 병합 · 회색 바탕(bf22) · 「합계」는 머리행 글자모양(굵게)
         tot = re.search(r'cell\(\d+,0\) bf(\d+) span1x2\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"합계"', d0)
         head = re.search(r'cell\(0,0\) bf\d+ span1x1\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"배정부서"', d0)
