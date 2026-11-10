@@ -222,6 +222,15 @@ def main():
         # (양식의 빈 줄 27개가 결재 칸을 밀어 본문이 길면 결재 칸만 다음 쪽으로 넘어갔다 — 표는 쪽 아래에 붙인다)
         d0 = dump(td / "draft_sample_rt.hwp").decode("utf-8", "replace")
         assert "첨부∨" not in d0 and re.search(r'  끝\."\s*$', d0, re.M), "첨부 없는 기안문의 끝 표시"
+        # 관련 근거가 없으면 「1. 관련 근거」 · 번호 없이 한 문장 「○○을/를 아래와 같이 추진하고자 합니다.」로 시작
+        dn = td / "draft_nobasis.json"
+        dn.write_text(json.dumps({**json.loads((ex / "draft_sample.json").read_text(encoding="utf-8")), "basis": []}, ensure_ascii=False),
+                      encoding="utf-8")
+        render(dn, td / "draft_nobasis.hwp")
+        got = vt.read_text(td / "draft_nobasis.hwp")
+        assert vt.clean_lines(got) == vt.clean_lines(vt.read_text(dn)), "관련 근거 없는 기안문 다시 읽기 불일치"
+        assert "관련 근거" not in got and "본사 회의실 화상회의 장비 교체를 아래와 같이 추진하고자 합니다." in got \
+            and "1. 본사" not in got and "결재하여 주시기" not in got, "관련 근거 없는 기안문의 요청 문장"
         # 예산 표 합계 행: 기안문 양식처럼 앞 두 칸 병합 · 회색 바탕(bf22) · 「합계」는 머리행 글자모양(굵게)
         tot = re.search(r'cell\(\d+,0\) bf(\d+) span1x2\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"합계"', d0)
         head = re.search(r'cell\(0,0\) bf\d+ span1x1\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"배정부서"', d0)

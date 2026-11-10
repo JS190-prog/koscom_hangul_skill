@@ -47,12 +47,21 @@ public class DraftRenderer extends Renderer {
             out.add(line("TOP", n++ + ". 관련 근거"));
             for (int i = 0; i < basis.size(); i++) out.add(body("BASIS", ORDER.charAt(i) + ". " + basis.get(i), 5));
         }
-        if (!basis.isEmpty()) out.add(c.proto("GAP"));
         String req = str(r, "request", "");
-        if (req.isEmpty())
-            req = (basis.isEmpty() ? "" : "위 근거에 의거, ") + "아래와 같이 " + obj(str(r, "purpose", "○○○○"))
-                    + " 추진하고자 하오니 결재하여 주시기 바랍니다.";
-        out.add(body("TOP", n + ". " + req, 3));
+        if (basis.isEmpty()) {
+            // 관련 근거가 없으면 번호 없이 한 문장으로 시작한다(예: 본사 구내식당 에어컨 추가 설치를 아래와 같이 추진하고자 합니다.)
+            if (req.isEmpty()) req = obj(str(r, "purpose", "○○○○")) + " 아래와 같이 추진하고자 합니다.";
+            Paragraph p = line("TOP", req);
+            p.getHeader().setParaShapeId(flatPs(p.getHeader().getParaShapeId()));
+            track(p, 0);
+            checkLines(p, "TOP", req);
+            out.add(p);
+        } else {
+            out.add(c.proto("GAP"));
+            if (req.isEmpty())
+                req = "위 근거에 의거, 아래와 같이 " + obj(str(r, "purpose", "○○○○")) + " 추진하고자 하오니 결재하여 주시기 바랍니다.";
+            out.add(body("TOP", n + ". " + req, 3));
+        }
         out.add(c.proto("GAP"));
         out.add(c.proto("BELOW"));
         boolean paren = str(r, "label_style", "colon").equals("paren");
@@ -110,6 +119,11 @@ public class DraftRenderer extends Renderer {
             c.hwp.getDocInfo().getParaShapeList().get(id).getProperty1().setLineDivideForHangul(LineDivideForHangul.ByWord);
             return id;
         });
+    }
+
+    /** 번호 없는 요청 문장의 문단모양: 「1. 」 내어쓰기를 없앤 것(둘째 줄도 왼쪽 여백에서 시작). */
+    int flatPs(int base) {
+        return boxPs.computeIfAbsent("flat/" + base, k -> addParaShape(c.hwp, base, 0, 0));
     }
 
     /** 본문 마지막 줄 끝에 「  끝.」을 붙인다(마지막이 표면 다음 줄에 「끝.」). */
