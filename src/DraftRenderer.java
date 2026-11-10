@@ -257,6 +257,9 @@ public class DraftRenderer extends Renderer {
             @SuppressWarnings("unchecked") Map<String, Object> it = (Map<String, Object>) o;
             String type = str(it, "type", "o");
             if (type.equals("table")) {
+                // 표를 여는 줄(「ㅇ 검사자(내부감사부 입회)」 · 장 제목)이 쪽 끝에 남고 표만 다음 쪽으로 넘어가지 않게
+                Paragraph lead = out.get(out.size() - 1);
+                if (firstTable(lead) == null) keepNext.add(lead);
                 if (!str(it, "unit", "").isEmpty()) {
                     Paragraph u = line("UNIT", str(it, "unit", ""));
                     keepNext.add(u);            // 단위 줄만 쪽 끝에 남고 표가 다음 쪽으로 넘어가지 않게

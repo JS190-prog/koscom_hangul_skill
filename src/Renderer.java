@@ -382,6 +382,8 @@ public class Renderer extends HwpOps {
                 double need = isObject(p) ? objectHeight(p) : top + lh * lines(p).size() + bottom;
                 int k = idx + 1;
                 while (k < body.size() && body.get(k).getText() == null && body.get(k).getControlList() == null) need += lineHeight(body.get(k++));
+                // 함께 가는 줄이 이어지면(ㅇ 항목 → 표 단위 줄 → 표) 그다음까지 한 덩어리
+                while (k < body.size() && keepNext.contains(body.get(k)) && !isObject(body.get(k))) need += lineHeight(body.get(k++));
                 if (k < body.size()) need += isObject(body.get(k)) ? objectHeight(body.get(k)) : lineHeight(body.get(k));
                 if (y + need > H) { page++; y = 0; }
             }
