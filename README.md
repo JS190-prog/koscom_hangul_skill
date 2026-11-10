@@ -117,7 +117,7 @@ I. 추진 배경 … II. 추진 현황 … III. 추진 과제 … IV. 기대 효
 
 ### 2. 저장소 접근 권한
 
-비공개 저장소입니다. 저장소 관리자(humanist96)에게 GitHub 계정을 알려 주고 **Collaborator 초대**를 받은 뒤 진행하세요.
+공개 저장소라 따로 권한을 받지 않아도 됩니다.
 
 ### 3. 스킬 폴더에 내려받기
 
@@ -135,13 +135,13 @@ I. 추진 배경 … II. 추진 현황 … III. 추진 과제 … IV. 기대 효
 GitHub CLI를 쓰는 경우:
 
 ```powershell
-gh repo clone humanist96/koscom_hangul_skill "$env:USERPROFILE\.claude\skills\koscom-hwp-report"
+gh repo clone JS190-prog/koscom_hangul_skill "$env:USERPROFILE\.claude\skills\koscom-hwp-report"
 ```
 
 Git을 쓰는 경우:
 
 ```powershell
-git clone https://github.com/humanist96/koscom_hangul_skill.git "$env:USERPROFILE\.claude\skills\koscom-hwp-report"
+git clone https://github.com/JS190-prog/koscom_hangul_skill.git "$env:USERPROFILE\.claude\skills\koscom-hwp-report"
 ```
 
 팀 프로젝트 저장소에서만 쓰려면 그 프로젝트의 `.claude\skills\koscom-hwp-report\`에 넣어도 됩니다.
