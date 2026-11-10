@@ -7,6 +7,7 @@ import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Row;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
 import kr.dogfoot.hwplib.object.docinfo.parashape.Alignment;
+import kr.dogfoot.hwplib.object.docinfo.parashape.LineDivideForHangul;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,11 +99,15 @@ public class DraftRenderer extends Renderer {
         setText(label, plainText(label).trim(), headCs);
     }
 
-    /** 첨부 목록 줄의 내어쓰기 문단모양(왼쪽 정렬 — 긴 첫 줄이 양쪽 정렬로 벌어지지 않게). */
+    /**
+     * 첨부 목록 줄의 내어쓰기 문단모양. 작성사례 첨부 첫 줄(ps20)처럼 왼쪽 정렬 · 한글 어절 단위 줄 나눔이다
+     * (글자 단위면 「… (2026. 4. 10.) 1부」의 「1부」가 「1 / 부」로 갈린다. 왼쪽 정렬이라 어절로 끊어도 빈칸이 벌어지지 않는다).
+     */
     int attPs(int base, int hang) {
         return boxPs.computeIfAbsent("att/" + base + "/" + hang, k -> {
             int id = addParaShape(c.hwp, base, 0, hang);
             c.hwp.getDocInfo().getParaShapeList().get(id).getProperty1().setAlignment(Alignment.Left);
+            c.hwp.getDocInfo().getParaShapeList().get(id).getProperty1().setLineDivideForHangul(LineDivideForHangul.ByWord);
             return id;
         });
     }
