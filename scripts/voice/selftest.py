@@ -259,6 +259,16 @@ def main():
         # 시행된 문서를 다시 만들면 꼬리 표 시행 칸에 문서번호 · 시행일(첨부로 읽는 다음 기안이 쓴다). 주지 않으면 양식 그대로 「시행」
         assert '"시행  사이버보안2026-163  (2026. 9. 9.)"' in dump(td / "draft_notice.hwp").decode("utf-8", "replace"), "시행 칸"
         assert '"시행  "' in d0, "issue 없이 시행 칸이 바뀜"
+        # 표를 여는 줄(ㅇ 검사자 → 표 → ※)은 「다음 문단과 함께」 — 쪽 끝에 그 줄만 남고 표가 다음 쪽으로 가지 않게(우선협상 결과보고 실측)
+        dk = td / "draft_lead.json"
+        dk.write_text(json.dumps({"type": "draft", "purpose": "시험", "sections": [{"heading": "계약체결", "items": [
+            {"type": "o", "text": "검사자(내부감사부 입회)", "children": [{"type": "table", "rows": [["부서", "담당자"], ["가부", "나"]]},
+                                                                    {"type": "ref", "text": "후임자가 승계"}]},
+            {"type": "o", "label": "계정과목", "text": "기계장치"}]}]}, ensure_ascii=False), encoding="utf-8")
+        render(dk, td / "draft_lead.hwp")
+        dl = dump(td / "draft_lead.hwp").decode("utf-8", "replace")
+        ps = lambda s: re.search(r"ps(\d+)[^\n]*" + re.escape(s), dl).group(1)
+        assert ps("검사자(내부감사부 입회)") != ps("계정과목 : 기계장치"), "표를 여는 줄에 다음 문단과 함께가 없음"
         # 예산 표 합계 행: 기안문 양식처럼 앞 두 칸 병합 · 회색 바탕(bf22) · 「합계」는 머리행 글자모양(굵게)
         tot = re.search(r'cell\(\d+,0\) bf(\d+) span1x2\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"합계"', d0)
         head = re.search(r'cell\(0,0\) bf\d+ span1x1\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"배정부서"', d0)
