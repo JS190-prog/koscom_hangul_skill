@@ -18,7 +18,8 @@ import java.util.Map;
  * 기안문(type: draft). 본문을 만든다: 관련 근거 → 요청 문장 → "- 아 래 -" → 번호 항목(1. 2. …).
  * 머리(수신자·제목)는 recipient · title을 주면 채우고, 없으면 양식의 「시스템 자동생성 영역」 그대로 둔다.
  * 첨부 목록은 attachments를 주면 「첨부 1. … 1부. 끝.」으로 쓰고, 없으면 본문 마지막 줄 끝에 「끝.」을 붙인다.
- * 결재 · 협조 · 시행 정보는 전자결재 시스템이 만드는 영역이라 양식 글 그대로 두고, 그 표는 쪽 아래에 붙인다(작성사례와 같음).
+ * 결재 · 협조 · 시행 정보는 전자결재 시스템이 만드는 영역이라 양식 글 그대로 두고(시행된 문서를 다시 만들 때만 issue로 시행 칸을 채움),
+ * 그 표는 쪽 아래에 붙인다(작성사례와 같음).
  * 빈 줄(맑은 고딕 12pt)은 양식대로 번호 항목 앞, 항목 제목과 첫 내용 사이, ㅇ 항목 사이에만 넣는다.
  */
 public class DraftRenderer extends Renderer {
@@ -92,6 +93,7 @@ public class DraftRenderer extends Renderer {
             out.add(p);
         }
         anchorTail(footer);
+        issue(footer, str(r, "issue", ""));
         keepTailWithBody(out, out.size() - atts.size(), footer);
         out.addAll(footer);
     }
@@ -208,6 +210,26 @@ public class DraftRenderer extends Renderer {
         while (b > 0 && plainText(footer.get(b - 1)).trim().isEmpty()
                 && (footer.get(b - 1).getControlList() == null || footer.get(b - 1).getControlList().isEmpty())) b--;
         for (int i = t - 1; i > b; i--) footer.remove(i);
+    }
+
+    /**
+     * 꼬리 표의 시행 칸에 문서번호 · 시행일을 쓴다(「시행  운영2026-0921  (2026. 9. 10.)」). 이미 시행된 문서를 양식으로 다시 만들 때만 준다 —
+     * 이 줄이 없으면 그 문서를 첨부로 읽는 쪽(다음 기안)이 문서번호 · 시행일을 알 수 없다. 새 기안은 전자결재 시스템이 채우므로 비워 둔다.
+     */
+    void issue(List<Paragraph> footer, String no) throws Exception {
+        if (no.isEmpty()) return;
+        for (Paragraph p : footer) {
+            ControlTable t = firstTable(p);
+            if (t == null) continue;
+            for (Row row : t.getRowList())
+                for (Cell cell : row.getCellList()) {
+                    Paragraph q = cell.getParagraphList().getParagraph(0);
+                    if (!plainText(q).trim().equals("시행")) continue;
+                    setText(q, "시행  " + no, (int) q.getCharShape().getPositonShapeIdPairList().get(0).getShapeId());
+                    return;
+                }
+        }
+        throw new IllegalStateException("기안문 양식에서 시행 칸을 찾지 못함");
     }
 
     /** 본문 글자모양(관련 근거 · 요청 문장 줄과 같은 것). 머리 값 칸과 첨부 목록에 쓴다. */
