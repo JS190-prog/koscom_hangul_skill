@@ -3,6 +3,8 @@ import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
 import kr.dogfoot.hwplib.object.bodytext.control.ctrlheader.gso.GsoHeaderProperty;
 import kr.dogfoot.hwplib.object.bodytext.control.ctrlheader.gso.RelativeArrange;
 import kr.dogfoot.hwplib.object.bodytext.control.ctrlheader.gso.VertRelTo;
+import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
+import kr.dogfoot.hwplib.object.bodytext.control.table.Row;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
 import kr.dogfoot.hwplib.object.docinfo.parashape.Alignment;
 
@@ -80,6 +82,22 @@ public class DraftRenderer extends Renderer {
         out.addAll(footer);
     }
 
+    /** 기안문 양식의 합계 행 테두리 · 바탕(가는 실선, 회색 f2f2f2). draft_base.hwp 문서 정보에 양식 그대로 들어 있다. */
+    static final int TOTAL_BF = 22;
+
+    /** 표 마지막 행이 「합계」면 양식처럼 회색 바탕에 「합계」를 머리행 글자모양(굵게)으로 쓴다. 앞 칸 병합은 표의 "<"로 준다. */
+    static void totalRow(ControlTable t) throws Exception {
+        List<Row> rows = t.getRowList();
+        if (rows.size() < 3) return;
+        Row last = rows.get(rows.size() - 1);
+        Paragraph label = last.getCellList().get(0).getParagraphList().getParagraph(0);
+        if (!plainText(label).replaceAll("\\s", "").matches("합계|총계")) return;
+        int headCs = (int) rows.get(0).getCellList().get(0).getParagraphList().getParagraph(0)
+                .getCharShape().getPositonShapeIdPairList().get(0).getShapeId();
+        for (Cell cell : last.getCellList()) cell.getListHeader().setBorderFillId(TOTAL_BF);
+        setText(label, plainText(label).trim(), headCs);
+    }
+
     /** 첨부 목록 줄의 내어쓰기 문단모양(왼쪽 정렬 — 긴 첫 줄이 양쪽 정렬로 벌어지지 않게). */
     int attPs(int base, int hang) {
         return boxPs.computeIfAbsent("att/" + base + "/" + hang, k -> {
@@ -153,7 +171,9 @@ public class DraftRenderer extends Renderer {
                     keepNext.add(u);            // 단위 줄만 쪽 끝에 남고 표가 다음 쪽으로 넘어가지 않게
                     out.add(u);
                 }
-                out.add(table(it));
+                Paragraph tp = table(it);
+                if (num(it, "style", 1) != 2) totalRow(firstTable(tp));
+                out.add(tp);
             } else {
                 if (!TYPES.contains(type))
                     throw new IllegalArgumentException("기안문에서 지원하지 않는 항목 type '" + type + "'(o, dash, dot, note, ref, table)");

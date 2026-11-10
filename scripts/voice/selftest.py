@@ -222,6 +222,10 @@ def main():
         # (양식의 빈 줄 27개가 결재 칸을 밀어 본문이 길면 결재 칸만 다음 쪽으로 넘어갔다 — 표는 쪽 아래에 붙인다)
         d0 = dump(td / "draft_sample_rt.hwp").decode("utf-8", "replace")
         assert "첨부∨" not in d0 and re.search(r'  끝\."\s*$', d0, re.M), "첨부 없는 기안문의 끝 표시"
+        # 예산 표 합계 행: 기안문 양식처럼 앞 두 칸 병합 · 회색 바탕(bf22) · 「합계」는 머리행 글자모양(굵게)
+        tot = re.search(r'cell\(\d+,0\) bf(\d+) span1x2\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"합계"', d0)
+        head = re.search(r'cell\(0,0\) bf\d+ span1x1\s+p0 \S+ \S+ cs\[0:(\d+)\][^\n]*"배정부서"', d0)
+        assert tot and head and tot.group(1) == "22" and tot.group(2) == head.group(1), "기안문 표 합계 행 모양(양식과 다름)"
 
         def blanks_before_tail(dd):
             tops, tail = [], None
